@@ -1,0 +1,8 @@
+C:\Users\przem\source\repos\Compilator\Compilator\obj\Debug\Compilator.csprojAssemblyReference.cache
+C:\Users\przem\source\repos\Compilator\Compilator\bin\Debug\Compilator.exe.config
+C:\Users\przem\source\repos\Compilator\Compilator\bin\Debug\Compilator.exe
+C:\Users\przem\source\repos\Compilator\Compilator\bin\Debug\Compilator.pdb
+C:\Users\przem\source\repos\Compilator\Compilator\bin\Debug\QUT.ShiftReduceParser.dll
+C:\Users\przem\source\repos\Compilator\Compilator\obj\Debug\Compilator.csproj.CopyComplete
+C:\Users\przem\source\repos\Compilator\Compilator\obj\Debug\Compilator.exe
+C:\Users\przem\source\repos\Compilator\Compilator\obj\Debug\Compilator.pdb

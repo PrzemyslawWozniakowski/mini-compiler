@@ -1,0 +1,3 @@
+program { int value1;
+double value2;
+value1 = f + -b* -c;}
