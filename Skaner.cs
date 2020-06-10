@@ -6,9 +6,9 @@
 //
 //  GPLEX Version:  1.2.2
 //  Machine:  LAPTOP-MOD8PJ2Q
-//  DateTime: 09.06.2020 13:59:36
+//  DateTime: 10.06.2020 14:12:32
 //  UserName: przem
-//  GPLEX input file <Skaner.lex - 09.06.2020 13:59:17>
+//  GPLEX input file <Skaner.lex - 10.06.2020 13:58:16>
 //  GPLEX frame file <embedded resource>
 //
 //  Option settings: parser, minimize
@@ -172,7 +172,9 @@ namespace GardensPoint
 /* NxS[   3] */ new Table(0, 0, -1, null),
 /* NxS[   4] */ new Table(0, 0, -1, null),
 /* NxS[   5] */ new Table(61, 1, -1, new sbyte[] {86}),
-/* NxS[   6] */ new Table(10, 1, 98, new sbyte[] {-1}),
+/* NxS[   6] */ new Table(10, 25, 98, new sbyte[] {-1, 98, 98, 98, 98, 98, 
+          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
+          98, 98, 85}),
 /* NxS[   7] */ new Table(38, 1, -1, new sbyte[] {84}),
 /* NxS[   8] */ new Table(100, 6, -1, new sbyte[] {89, -1, -1, -1, -1, 90}),
 /* NxS[   9] */ new Table(0, 0, -1, null),
@@ -513,7 +515,9 @@ namespace GardensPoint
 /* NxS[  82] */ new Table(0, 0, -1, null),
 /* NxS[  83] */ new Table(0, 0, -1, null),
 /* NxS[  84] */ new Table(0, 0, -1, null),
-/* NxS[  85] */ new Table(0, 0, -1, null),
+/* NxS[  85] */ new Table(10, 25, 98, new sbyte[] {-1, 98, 98, 98, 98, 98, 
+          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
+          98, 98, 85}),
 /* NxS[  86] */ new Table(0, 0, -1, null),
 /* NxS[  87] */ new Table(9, 118, 1, new sbyte[] {2, -1, 1, 1, 3, 1, 
           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
@@ -534,7 +538,9 @@ namespace GardensPoint
 /* NxS[  95] */ new Table(108, 1, -1, new sbyte[] {96}),
 /* NxS[  96] */ new Table(101, 1, -1, new sbyte[] {97}),
 /* NxS[  97] */ new Table(41, 1, -1, new sbyte[] {83}),
-/* NxS[  98] */ new Table(34, 1, -1, new sbyte[] {85}),
+/* NxS[  98] */ new Table(10, 25, 98, new sbyte[] {-1, 98, 98, 98, 98, 98, 
+          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
+          98, 98, 85}),
     };
 
 int NextState() {

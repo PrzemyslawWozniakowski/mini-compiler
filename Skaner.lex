@@ -1,7 +1,9 @@
 
 %using QUT.Gppg;
 %namespace GardensPoint
-
+%{
+static int linecount=1;
+%}
 alpha      [a-zA-Z]
 digit      [0-9]
 alnum      {alpha}|{digit}
@@ -11,8 +13,10 @@ RealNumber  ({digit}\.[0-9]+)|([1-9]{digit}*\.[0-9]+)
 Ident       {alpha}{alnum}*
 
 %%
+
+int linecount = 1;
 "//".*        { return (int)Tokens.Comment;}
-\".\"		  {	return (int)Tokens.String; } 
+\".*\"		  {	return (int)Tokens.String; } 
 "(double)"    { return (int)Tokens.DoubleConv; }
 "(int)"       { return (int)Tokens.IntConv; }
 
@@ -60,8 +64,8 @@ Ident       {alpha}{alnum}*
 "{"	          { return (int)Tokens.OpenBracket;}
 "}"	          { return (int)Tokens.CloseBracket;}
 
-"\r"          { }
+"\r"          { linecount++;}
 <<EOF>>       { return (int)Tokens.Eof; }
 " "           { }
 "\t"          { }
-.             { return (int)Tokens.Error; }
+.             { yylval.val=linecount; return (int)Tokens.Error; }

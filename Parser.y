@@ -11,20 +11,38 @@ public string  type;
 %token Comment String DoubleConv IntConv Write Program If Else While Read Int Double Bool True False Return And BitAnd Or BitOr Negation BitNegation  Equal NotEqual GreaterOrEqual SmallerOrEqual Smaller Greater Negation BitNegation  Assign Plus Minus Multiply Divide OpenPar ClosePar SemiCol OpenBracket CloseBracket Endl Eof Error
 %token <val> Ident IntNumber RealNumber
 
-%type <type> main declare vtype assign exp exp exp2 exp3 exp4 exp5 exp6  logicop addop unary relatiop mulop bitop
+%type <type> main declare vtype assign exp exp exp2 exp3 exp4 exp5 exp6  logicop addop unary relatiop mulop bitop term read while whilebody 
 
 %%
 
 start : Program OpenBracket main CloseBracket {Console.WriteLine("It's a program PogChamp");};
 
+read: Read Ident SemiCol {Console.WriteLine("read ident");};
+
+write: Write exp SemiCol {Console.WriteLine("write ident");}
+	| Write String SemiCol {Console.WriteLine("write string");};
+
 main: declare main
 	| assign main
+	| read main
+	| write main
+	| while main
+	| Comment main
 	| ;
+
+while: While OpenPar exp ClosePar OpenBracket main CloseBracket {Console.WriteLine("While long");}
+	| While OpenPar exp ClosePar whilebody {Console.WriteLine("While short");};
+
+whilebody: assign {Console.WriteLine("Single operation while body - assign");}
+	| exp SemiCol {Console.WriteLine("Single operation while body - exp");}
+	| while {Console.WriteLine("Single operation while body - while");}
+	| read {Console.WriteLine("Single operation while body - read");}
+	| write {Console.WriteLine("Single operation while body - write");};
 
 declare : vtype Ident SemiCol {Console.WriteLine("It's a declaration");};
 
-vtype: Int 
-	| Double;
+vtype: Int {Console.WriteLine("Int");}
+	| Double {Console.WriteLine("Double");};
 
 assign: Ident Assign exp SemiCol {Console.WriteLine("It's an assignment");};
 
@@ -45,8 +63,14 @@ exp5: exp6 bitop exp5  {Console.WriteLine("Bitop");}
 	| exp6;
 
 exp6: unary exp6  {Console.WriteLine("Unary op");}
-	| Ident  {//Console.WriteLine("Ident");
+	| term  {//Console.WriteLine("Ident");
 	};
+
+term: Ident {Console.WriteLine("Ident");}
+	| RealNumber {Console.WriteLine("Real Number");}
+	| IntNumber {Console.WriteLine("Int number");}
+	| True {Console.WriteLine(" true");}
+	| False {Console.WriteLine(" false");};
 
 addop: Plus  {//Console.WriteLine("Adding");
 	}

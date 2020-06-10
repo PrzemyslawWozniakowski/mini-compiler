@@ -1,10 +1,10 @@
 
 // ==========================================================================
-//  GPPG error listing for yacc source file <Parser.y - 10.06.2020 01:14:02>
+//  GPPG error listing for yacc source file <Parser.y - 10.06.2020 15:28:40>
 // ==========================================================================
 //  Version:  1.5.2
 //  Machine:  LAPTOP-MOD8PJ2Q
-//  DateTime: 10.06.2020 01:14:04
+//  DateTime: 10.06.2020 15:28:44
 //  UserName: przem
 // ==========================================================================
 
@@ -22,20 +22,44 @@ public string  type;
 %token Comment String DoubleConv IntConv Write Program If Else While Read Int Double Bool True False Return And BitAnd Or BitOr Negation BitNegation  Equal NotEqual GreaterOrEqual SmallerOrEqual Smaller Greater Negation BitNegation  Assign Plus Minus Multiply Divide OpenPar ClosePar SemiCol OpenBracket CloseBracket Endl Eof Error
 %token <val> Ident IntNumber RealNumber
 
-%type <type> main declare vtype assign exp exp exp2 exp3 exp4 exp5 exp6  logicop addop unary relatiop mulop bitop
+%type <type> main declare vtype assign exp exp exp2 exp3 exp4 exp5 exp6  logicop addop unary relatiop mulop bitop term read while whilebody boolop
 
 %%
+// Error: There are 1 non-terminating NonTerminal Symbols
+   //  {boolop}
+// Warning: Terminating boolop fixes the following size-1 NonTerminal set
+   // {boolop}
+// Warning: NonTerminal symbol "boolop" is unreachable
+// Error: NonTerminal symbol "boolop" has no productions
+// ----------------------------------------------------------------------
 
 start : Program OpenBracket main CloseBracket {Console.WriteLine("It's a program PogChamp");};
 
+read: Read Ident SemiCol {Console.WriteLine("read ident");};
+
+write: Write exp SemiCol {Console.WriteLine("write ident");}
+	| Write String SemiCol {Console.WriteLine("write string");};
+
 main: declare main
 	| assign main
+	| read main
+	| write main
+	| while main
 	| ;
+
+while: While OpenPar exp ClosePar OpenBracket main CloseBracket {Console.WriteLine("While long");}
+	| While OpenPar exp ClosePar whilebody {Console.WriteLine("While short");};
+
+whilebody: assign {Console.WriteLine("Single operation while body - assign");}
+	| exp SemiCol {Console.WriteLine("Single operation while body - exp");}
+	| while {Console.WriteLine("Single operation while body - while");}
+	| read {Console.WriteLine("Single operation while body - read");}
+	| write {Console.WriteLine("Single operation while body - write");};
 
 declare : vtype Ident SemiCol {Console.WriteLine("It's a declaration");};
 
-vtype: Int 
-	| Double;
+vtype: Int {Console.WriteLine("Int");}
+	| Double {Console.WriteLine("Double");};
 
 assign: Ident Assign exp SemiCol {Console.WriteLine("It's an assignment");};
 
@@ -55,9 +79,15 @@ exp4: exp5 mulop exp4  {Console.WriteLine("Mulop");}
 exp5: exp6 bitop exp5  {Console.WriteLine("Bitop");}
 	| exp6;
 
-exp6: unary exp6
-	| Ident  {//Console.WriteLine("Ident");
+exp6: unary exp6  {Console.WriteLine("Unary op");}
+	| term  {//Console.WriteLine("Ident");
 	};
+
+term: Ident {Console.WriteLine("Ident");}
+	| RealNumber {Console.WriteLine("Real Number");}
+	| IntNumber {Console.WriteLine("Int number");}
+	| True {Console.WriteLine(" true");}
+	| False {Console.WriteLine(" false");};
 
 addop: Plus  {//Console.WriteLine("Adding");
 	}
@@ -70,10 +100,8 @@ mulop: Multiply  {//Console.WriteLine("Multiply");
 
 bitop: BitOr {//Console.WriteLine("Bit Or");
 	}
-	| BitAnd  {//Console.WriteLine("Bit And");} ;
-//---------^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// Error: Position of unmatched brace
-// ----------------------------------
+	| BitAnd  {//Console.WriteLine("Bit And");
+	} ;
 
 unary: Minus  {//Console.WriteLine("Unary minus");
 	}
@@ -106,15 +134,6 @@ relatiop: Equal {//Console.WriteLine("Equal");
 	;
 
 %%
-// Error: Premature termination of Code Block
-// Error: Syntax error, unexpected %%, expecting codeEnd, or error
-// ---------------------------------------------------------------
 
-public Parser(Scanner scanner) : base(scanner) { }//----------^^--------------^^------^^------^^
-// Error: This character is invalid in this context
-// Error: This character is invalid in this context
-// Error: This character is invalid in this context
-// Error: This character is invalid in this context
-// ------------------------------------------------
-// ==========================================================================
+public Parser(Scanner scanner) : base(scanner) { }// ==========================================================================
 
