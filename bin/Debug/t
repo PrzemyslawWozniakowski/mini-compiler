@@ -1,10 +1,14 @@
 program { int value1;
 double value2;
 value1 = f + -b* -c | a;
+$wa;
 read value2;
 write "aa";
 value3 =c * (int)b; write 1 + e;
 while(a>0)
-{a=2;}
+{
+while(1==0)
+f=2;
+}
 // casdasd
 }
