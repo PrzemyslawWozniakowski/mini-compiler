@@ -6,9 +6,9 @@
 //
 //  GPLEX Version:  1.2.2
 //  Machine:  LAPTOP-MOD8PJ2Q
-//  DateTime: 10.06.2020 14:12:32
+//  DateTime: 12.06.2020 23:08:12
 //  UserName: przem
-//  GPLEX input file <Skaner.lex - 10.06.2020 13:58:16>
+//  GPLEX input file <Skaner.lex - 12.06.2020 11:31:05>
 //  GPLEX frame file <embedded resource>
 //
 //  Option settings: parser, minimize
@@ -132,6 +132,7 @@ namespace GardensPoint
         const int INITIAL = 0;
 
 #region user code
+static int linecount=1;
 #endregion user code
 
         int state;
@@ -975,13 +976,13 @@ return (int)Tokens.Eof;
             break;
         case 1:
         case 6:
-return (int)Tokens.Error;
+yylval.i_val=linecount; return (int)Tokens.Error;
             break;
         case 2:
 { }
             break;
         case 3:
-{ }
+linecount++;
             break;
         case 4:
 { }

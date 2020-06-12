@@ -4,7 +4,7 @@
 // ==========================================================================
 //  Version:  1.2.2
 //  Machine:  LAPTOP-MOD8PJ2Q
-//  DateTime: 09.06.2020 01:05:08
+//  DateTime: 12.06.2020 11:28:51
 //  UserName: przem
 // ==========================================================================
 
@@ -12,24 +12,24 @@
 
 %using QUT.Gppg;
 %namespace GardensPoint
-
+%{
+static int linecount=1;
+%}
 alpha      [a-zA-Z]
 digit      [0-9]
 alnum      {alpha}|{digit}
 
-IntNumber   ([1-9]{digit}*)| 0
-//---------------------------^
-// Error: Expected end-of-line here
-// --------------------------------
-RealNumber  ({digit}\.[0-9]+) | ([1-9]{digit}*\.[0-9]+)
-//----------------------------^^^^^^^^^^^^^^^^^^^^^^^^^
-// Error: Expected end-of-line here
-// --------------------------------
+IntNumber   ([1-9]{digit}*)|0
+RealNumber  ({digit}\.[0-9]+)|([1-9]{digit}*\.[0-9]+)
 Ident       {alpha}{alnum}*
 
 %%
+
+int linecount = 1;
+// Warning: This pattern always overrides ""int"" 
+// -----------------------------------------------
 "//".*        { return (int)Tokens.Comment;}
-\".\"		  {	return (int)Tokens.String; } 
+\".*\"		  {	return (int)Tokens.String; } 
 "(double)"    { return (int)Tokens.DoubleConv; }
 "(int)"       { return (int)Tokens.IntConv; }
 
@@ -40,6 +40,9 @@ Ident       {alpha}{alnum}*
 "while"	      { return (int)Tokens.While;}
 "read"	      { return (int)Tokens.Read;}
 "int"         { return (int)Tokens.Int;}
+//^^^
+// Warning: This pattern always overridden by "int" 
+// -------------------------------------------------
 "double"      { return (int)Tokens.Double;}  
 "bool"        { return (int)Tokens.Bool;}
 "true"        { return (int)Tokens.True;}
@@ -77,9 +80,9 @@ Ident       {alpha}{alnum}*
 "{"	          { return (int)Tokens.OpenBracket;}
 "}"	          { return (int)Tokens.CloseBracket;}
 
-"\r"          { return (int)Tokens.Endl; }
+"\r"          { linecount++;}
 <<EOF>>       { return (int)Tokens.Eof; }
 " "           { }
 "\t"          { }
-.             { return (int)Tokens.Error; }// ==========================================================================
+.             { yylval.i_val=linecount; return (int)Tokens.Error; }// ==========================================================================
 

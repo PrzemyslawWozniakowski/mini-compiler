@@ -1,10 +1,10 @@
 
 // ==========================================================================
-//  GPPG error listing for yacc source file <Parser.y - 10.06.2020 15:28:40>
+//  GPPG error listing for yacc source file <Parser.y - 12.06.2020 23:18:26>
 // ==========================================================================
 //  Version:  1.5.2
 //  Machine:  LAPTOP-MOD8PJ2Q
-//  DateTime: 10.06.2020 15:28:44
+//  DateTime: 12.06.2020 23:18:41
 //  UserName: przem
 // ==========================================================================
 
@@ -22,29 +22,33 @@ public string  type;
 %token Comment String DoubleConv IntConv Write Program If Else While Read Int Double Bool True False Return And BitAnd Or BitOr Negation BitNegation  Equal NotEqual GreaterOrEqual SmallerOrEqual Smaller Greater Negation BitNegation  Assign Plus Minus Multiply Divide OpenPar ClosePar SemiCol OpenBracket CloseBracket Endl Eof Error
 %token <val> Ident IntNumber RealNumber
 
-%type <type> main declare vtype assign exp exp exp2 exp3 exp4 exp5 exp6  logicop addop unary relatiop mulop bitop term read while whilebody boolop
+%type <type> maincandeclare main declare vtype assign exp exp exp2 exp3 exp4 exp5 exp6  logicop addop unary relatiop mulop bitop term read while whilebody err
 
 %%
-// Error: There are 1 non-terminating NonTerminal Symbols
-   //  {boolop}
-// Warning: Terminating boolop fixes the following size-1 NonTerminal set
-   // {boolop}
-// Warning: NonTerminal symbol "boolop" is unreachable
-// Error: NonTerminal symbol "boolop" has no productions
-// ----------------------------------------------------------------------
+// Warning: NonTerminal symbol "err" is unreachable
+// ------------------------------------------------
 
-start : Program OpenBracket main CloseBracket {Console.WriteLine("It's a program PogChamp");};
+start : Program OpenBracket maincandeclare CloseBracket {Console.WriteLine("It's a program PogChamp");};
 
-read: Read Ident SemiCol {Console.WriteLine("read ident");};
+read: Read Ident  {Console.WriteLine("read ident");};
 
-write: Write exp SemiCol {Console.WriteLine("write ident");}
-	| Write String SemiCol {Console.WriteLine("write string");};
+write: Write exp {Console.WriteLine("write ident");}
+	| Write String {Console.WriteLine("write string");};
 
-main: declare main
-	| assign main
-	| read main
-	| write main
+maincandeclare: declare maincandeclare
+	| main;
+
+err:  error SemiCol  {Console.WriteLine("ERROR D: in line {0}", $1.i_val);};
+
+expression: assign 
+	| read 
+	| write;
+
+main: expression SemiCol main
+	| Comment {Console.WriteLine("It's a comment");} main
 	| while main
+	|  error SemiCol  {Console.WriteLine("ERROR D: in line {0}", $1.i_val);} main
+	| expression expression SemiCol  main {Console.WriteLine("Syntax error"); }
 	| ;
 
 while: While OpenPar exp ClosePar OpenBracket main CloseBracket {Console.WriteLine("While long");}
@@ -61,7 +65,7 @@ declare : vtype Ident SemiCol {Console.WriteLine("It's a declaration");};
 vtype: Int {Console.WriteLine("Int");}
 	| Double {Console.WriteLine("Double");};
 
-assign: Ident Assign exp SemiCol {Console.WriteLine("It's an assignment");};
+assign: Ident Assign exp {Console.WriteLine("It's an assignment");};
 
 
 exp: exp2 logicop exp  {Console.WriteLine("Logicop");}

@@ -14,7 +14,6 @@ Ident       {alpha}{alnum}*
 
 %%
 
-int linecount = 1;
 "//".*        { return (int)Tokens.Comment;}
 \".*\"		  {	return (int)Tokens.String; } 
 "(double)"    { return (int)Tokens.DoubleConv; }
@@ -68,4 +67,4 @@ int linecount = 1;
 <<EOF>>       { return (int)Tokens.Eof; }
 " "           { }
 "\t"          { }
-.             { yylval.val=linecount; return (int)Tokens.Error; }
+.             { yylval.i_val=linecount; return (int)Tokens.Error; }

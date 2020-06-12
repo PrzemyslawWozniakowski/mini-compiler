@@ -1,8 +1,9 @@
 program { int value1;
 double value2;
 value1 = f + -b* -c | a;
-$wa;
-read value2;
+
+$ w=a;
+read value2 write value1;
 write "aa";
 value3 =c * (int)b; write 1 + e;
 while(a>0)
