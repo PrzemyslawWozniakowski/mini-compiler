@@ -2,14 +2,23 @@ program { int value1;
 double value2;
 value1 = f + -b* -c | a;
 
-$ w=a;
+if(3>1)
+if(i>1) a=3;
+else a=4;
+ 
+
+$ w=a
 read value2 write value1;
+
 write "aa";
 value3 =c * (int)b; write 1 + e;
+{
 while(a>0)
 {
 while(1==0)
 f=2;
 }
+
+
 // casdasd
 }
