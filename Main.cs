@@ -1,7 +1,7 @@
 
 using System;
 using System.IO;
-using System.Collections.Generic;
+using System.Collections.Generic;                                 
 using GardensPoint;
 using System.Threading;
 using SymTab;
@@ -11,11 +11,11 @@ public class Compiler
     {
 
     public static int errors = 0;
-
+    public static int line = 1;
     public static List<string> source;
     public static StructTree tree;
-    public Dictionary<Variable, string> variables;  
-
+    public static Dictionary<string,Variable> variables;
+    public static Stack<StructTree> stackTree = new Stack<StructTree>();
     // arg[0] określa plik źródłowy
     // pozostałe argumenty są ignorowane
     public static int Main(string[] args)
@@ -46,9 +46,13 @@ public class Compiler
         Scanner scanner = new Scanner(source);
         Parser parser = new Parser(scanner);
         Console.WriteLine();
+
         sw = new StreamWriter(file+".il");
         GenProlog();
         parser.Parse();
+        StructTree currentnode = tree;
+
+        CheckTypeTree(currentnode);
         GenEpilog();
         sw.Close();
         source.Close();
@@ -59,10 +63,17 @@ public class Compiler
             Console.WriteLine($"\n  {errors} errors detected\n");
             File.Delete(file+".il");
             }
-        Thread.Sleep(2000);
+        Thread.Sleep(20000);
         return errors==0 ? 0 : 2 ;
         }
 
+    public static void CheckTypeTree(StructTree node)
+    {
+
+        if (node.left != null) CheckTypeTree(node.left);
+         node.CheckType();
+        if (node.right != null) CheckTypeTree(node.right);
+    }
     public static void EmitCode(string instr=null)
         {
         sw.WriteLine(instr);
@@ -110,14 +121,65 @@ public abstract class StructTree
     public int line = -1;   
     public abstract string CheckType();
     public abstract string GenCode();
-    public StructTree left;
-    public StructTree right;
+    public StructTree left=null;
+    public StructTree right=null;
+   
 }
 
-public class Assign : StructTree
+public class MainNode: StructTree
 {
     public override string CheckType() { return ""; }
 
+    public override string GenCode()
+    {
+
+        return "";
+    }
+}
+
+public class DeclarationNode: StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Declaration of {ident}"); return ""; }
+    public string varType;
+    public string ident;
+    public bool isValid() { return Compiler.variables.ContainsKey(ident); }
+    public override string GenCode()
+    {
+        return "";
+    }
+}
+
+public class AssignNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Assign for {ident}"); return ""; }
+    public string ident;
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class LogicNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Logicop"); return ""; }
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class RelationNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Relation op"); return ""; }
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class IdentNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Value"); return ""; }
     public override string GenCode()
     {
         throw new NotImplementedException();

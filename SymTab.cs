@@ -9,6 +9,5 @@ namespace SymTab
     public struct Variable
     {
         public Type type;
-        public bool initialized;
     }
 }

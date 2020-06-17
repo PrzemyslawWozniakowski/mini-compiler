@@ -6,9 +6,9 @@
 //
 //  GPLEX Version:  1.2.2
 //  Machine:  LAPTOP-MOD8PJ2Q
-//  DateTime: 12.06.2020 23:08:12
+//  DateTime: 15.06.2020 23:25:22
 //  UserName: przem
-//  GPLEX input file <Skaner.lex - 12.06.2020 11:31:05>
+//  GPLEX input file <Skaner.lex - 15.06.2020 23:25:21>
 //  GPLEX frame file <embedded resource>
 //
 //  Option settings: parser, minimize
@@ -1016,7 +1016,7 @@ return (int)Tokens.Divide;
 yylval.val=yytext; return (int)Tokens.IntNumber;
             break;
         case 16:
-return (int)Tokens.SemiCol;
+yylval.i_val=linecount; return (int)Tokens.SemiCol;
             break;
         case 17:
 return (int)Tokens.Smaller;

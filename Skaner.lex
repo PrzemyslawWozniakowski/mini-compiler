@@ -59,7 +59,7 @@ Ident       {alpha}{alnum}*
 "/"           { return (int)Tokens.Divide; }
 "("           { return (int)Tokens.OpenPar; }
 ")"           { return (int)Tokens.ClosePar; }
-";"           { return (int)Tokens.SemiCol;}
+";"           { yylval.i_val=linecount; return (int)Tokens.SemiCol;}
 "{"	          { return (int)Tokens.OpenBracket;}
 "}"	          { return (int)Tokens.CloseBracket;}
 
