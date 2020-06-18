@@ -8,8 +8,8 @@ public double  d_val;
 public string  type;
 }
 
-%token Comment String DoubleConv IntConv Write Program If Else While Read Int Double Bool True False Return And BitAnd Or BitOr Negation BitNegation  Equal NotEqual GreaterOrEqual SmallerOrEqual Smaller Greater Negation BitNegation  Assign Plus Minus Multiply Divide OpenPar ClosePar SemiCol OpenBracket CloseBracket Endl Eof Error
-%token <val> Ident IntNumber RealNumber
+%token Comment DoubleConv IntConv Write Program If Else While Read Int Double Bool True False Return And BitAnd Or BitOr Negation BitNegation  Equal NotEqual GreaterOrEqual SmallerOrEqual Smaller Greater Negation BitNegation  Assign Plus Minus Multiply Divide OpenPar ClosePar SemiCol OpenBracket CloseBracket Endl Eof Error
+%token <val> Ident IntNumber RealNumber  String
 
 %type <type> maincandeclare main declare vtype assign exp exp exp2 exp3 exp4 exp5 exp6  logicop addop unary relatiop mulop bitop term read while whilebody if 
 
@@ -32,8 +32,18 @@ ifbody: OpenBracket main CloseBracket {Console.WriteLine("Long if body - exp");}
 
 read: Read Ident  {Console.WriteLine("read ident");};
 
-write: Write exp {Console.WriteLine("write ident");}
-	| Write String {Console.WriteLine("write string");};
+write: Write exp{ Console.WriteLine("write");var nodeW = new WriteNode();
+					if(Compiler.stackTree.Count>0) nodeW.right = Compiler.stackTree.Pop();
+					    Compiler.stackTree.Push(nodeW);}
+	| Write OpenPar exp ClosePar { Console.WriteLine("write");var nodeW = new WriteNode();
+					if(Compiler.stackTree.Count>0) nodeW.right = Compiler.stackTree.Pop();
+				    Compiler.stackTree.Push(nodeW);}
+	| Write String {Console.WriteLine("write");
+					var nodeS = new StringNode();
+					nodeS.value = $2;
+					var nodeW = new WriteNode();
+					nodeW.right=nodeS;
+				    Compiler.stackTree.Push(nodeW);};
 
 maincandeclare: declare maincandeclare
 				 {  
@@ -96,7 +106,7 @@ vtype: Int {Console.WriteLine("Int");}
 
 assign: Ident Assign exp  {var node = new AssignNode(); 
 						   node.ident=$1;
-						   	if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+						   	if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 						  Compiler.stackTree.Push(node);};
 
 
@@ -121,21 +131,89 @@ exp: exp2 logicop exp  {var node = new LogicNode();
 	| exp2; 
 
 exp2: exp3 relatiop exp2
+		 {Console.WriteLine("relatiop");
+		 var node = new RelationNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
 	|  OpenPar exp ClosePar relatiop exp2  
+		 {var node = new RelationNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
 	|  OpenPar exp ClosePar relatiop OpenPar exp ClosePar 
+		 {var node = new RelationNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
 	| exp3 relatiop OpenPar exp ClosePar 
+		 {var node = new RelationNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
 	| exp3;
 
-exp3: exp4 addop exp3  {Console.WriteLine("Addop");}
+exp3: exp4 addop exp3 {var node = new AddNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	| OpenPar exp ClosePar addop exp3 {var node = new AddNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	| exp4 addop OpenPar exp ClosePar {var node = new AddNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	| OpenPar exp ClosePar addop OpenPar exp ClosePar
+					{var node = new AddNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
 	| exp4;
 
-exp4: exp5 mulop exp4  {Console.WriteLine("Mulop");}
+exp4: exp5 mulop exp4  {var node = new MulNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	| OpenPar exp ClosePar mulop OpenPar exp ClosePar  {var node = new MulNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	| OpenPar exp ClosePar mulop exp4  {var node = new MulNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	| exp5 mulop OpenPar exp ClosePar  {var node = new MulNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
 	| exp5;
 
-exp5: exp6 bitop exp5  {Console.WriteLine("Bitop");}
+exp5: exp6 bitop exp5  {var node = new BitNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	|  OpenPar exp ClosePar bitop exp5  {var node = new BitNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	|  exp6 bitop  OpenPar exp ClosePar  {var node = new BitNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	|   OpenPar exp ClosePar bitop  OpenPar exp ClosePar {var node = new BitNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
 	| exp6;
 
-exp6: unary exp6  {Console.WriteLine("Unary op");}
+exp6: unary exp6   {var node = new UnaryNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
+	| unary OpenPar exp ClosePar {var node = new UnaryNode(); 
+				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
+					Compiler.stackTree.Push(node);}
 	| term  {//Console.WriteLine("Ident");
 	};
 

@@ -63,7 +63,7 @@ public class Compiler
             Console.WriteLine($"\n  {errors} errors detected\n");
             File.Delete(file+".il");
             }
-        Thread.Sleep(20000);
+        Thread.Sleep(4000);
         return errors==0 ? 0 : 2 ;
         }
 
@@ -177,9 +177,74 @@ public class RelationNode : StructTree
     }
 }
 
+public class AddNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Add"); return ""; }
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class MulNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Mul"); return ""; }
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class BitNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Bit"); return ""; }
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class UnaryNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Unary"); return ""; }
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
 public class IdentNode : StructTree
 {
     public override string CheckType() { Console.WriteLine($"Value"); return ""; }
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class StringNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"String"); return ""; }
+    public string value;
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class WriteNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Write"); return ""; }
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class ReadNode : StructTree
+{
+    public override string CheckType() { Console.WriteLine($"Read"); return ""; }
+    public string value;
     public override string GenCode()
     {
         throw new NotImplementedException();
