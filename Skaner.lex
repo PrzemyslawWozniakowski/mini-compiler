@@ -14,7 +14,7 @@ Ident       {alpha}{alnum}*
 
 %%
 
-"//".*        { return (int)Tokens.Comment;}
+"//".*        {}
 \"([^\""\r\n"]|\\.)*\"  {  yylval.val=yytext;	return (int)Tokens.String; } 
 "(double)"    { return (int)Tokens.DoubleConv; }
 "(int)"       { return (int)Tokens.IntConv; }
