@@ -20,6 +20,7 @@ public class Compiler
     // pozostałe argumenty są ignorowane
     public static int Main(string[] args)
     {
+       
         string file = "";
         FileStream source;
         Console.WriteLine("\nSingle-Pass CIL Code Generator for Multiline Calculator - Gardens Point");
@@ -51,8 +52,8 @@ public class Compiler
         GenProlog();
         parser.Parse();
         StructTree currentnode = tree;
-
-        CheckTypeTree(currentnode);
+        if (errors == 0)
+            CheckTypeTree(currentnode);
         GenEpilog();
         sw.Close();
         source.Close();
@@ -154,7 +155,12 @@ public class AssignNode : StructTree
     public override string CheckType()
     {
         string typeL = left.CheckType();
-
+        if (!Compiler.variables.ContainsKey(ident))
+        {
+            Console.WriteLine($"Semantic error. Variable {ident} undeclared.");
+            Compiler.errors++;
+            return "";
+        }
         if (Compiler.variables[ident] == "bool" && typeL != "bool")
         {
             Console.WriteLine($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
@@ -173,7 +179,7 @@ public class AssignNode : StructTree
             Console.WriteLine($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
         }
-        return "";
+        return Compiler.variables[ident];
     }
     public string ident;
     public override string GenCode()
@@ -418,7 +424,8 @@ public class WriteNode : StructTree
 {
     public override string CheckType()
     {
-        right.CheckType();
+        if (right != null) right.CheckType();
+        if (left != null) left.CheckType();
         return "";
     }
     public override string GenCode()
@@ -431,7 +438,8 @@ public class ReadNode : StructTree
 {
     public override string CheckType()
     {
-        right.CheckType();
+        if (right!=null) right.CheckType();
+        if (left != null) left.CheckType();
         return "";
         }
     public string value;
@@ -445,6 +453,7 @@ public class WhileNode : StructTree
 {
     public override string CheckType()
     {
+
         string type1 = left.CheckType();
         if (type1 != "bool")
         {
@@ -471,6 +480,8 @@ public class IfNode : StructTree
             Console.WriteLine($"If condition cannot be of type {type1}");
             Compiler.errors++;
         }
+        if (right != null) right.CheckType();
+
         return "";
     }
     public override string GenCode()
@@ -501,3 +512,15 @@ public class IfElseNode : StructTree
     }
 }
 
+public class ReturnNode : StructTree
+{
+    public override string CheckType()
+    {
+   
+        return "";
+    }
+    public override string GenCode()
+    {
+        throw new NotImplementedException();
+    }
+}

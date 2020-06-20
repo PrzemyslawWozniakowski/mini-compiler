@@ -11,12 +11,12 @@ public string  type;
 %token Comment DoubleConv IntConv Write Program If Else While Read Int Double Bool True False Return And BitAnd Or BitOr Negation BitNegation  Equal NotEqual GreaterOrEqual SmallerOrEqual Smaller Greater Negation BitNegation  Assign Plus Minus Multiply Divide OpenPar ClosePar SemiCol OpenBracket CloseBracket Endl Eof Error
 %token <val> Ident IntNumber RealNumber  String
 
-%type <type> maincandeclare main declare vtype assign exp exp exp2 exp3 exp4 exp5 exp6  logicop addop unary relatiop mulop bitop term read while whilebody if 
+%type <type> identPar maincandeclare main declare vtype assign  exp exp2 exp3 exp4 exp5 exp6  logicop addop unary relatiop mulop bitop term read while whilebody if 
 
 %%
 
-start : Program OpenBracket maincandeclare CloseBracket Eof { Compiler.tree = Compiler.stackTree.Pop();}
-	error Eof;
+start : Program OpenBracket maincandeclare CloseBracket Eof { Compiler.tree = Compiler.stackTree.Pop();};
+
 
 if: If  OpenPar exp ClosePar ifbody { var nodeI = new IfNode();
 					if(Compiler.stackTree.Count>0) nodeI.right = Compiler.stackTree.Pop();
@@ -30,19 +30,24 @@ if: If  OpenPar exp ClosePar ifbody { var nodeI = new IfNode();
 
 ifbody: OpenBracket main CloseBracket 
 	| expression SemiCol 
+	| exp SemiCol
 	| while 
-	| if;
+	| if
+	| Return SemiCol { var nodeM = new ReturnNode();
+		 Compiler.stackTree.Push(nodeM);};
 
-read: Read Ident  { var nodeR = new WriteNode();
+identPar: Ident {$$=$1;}
+	| OpenPar identPar ClosePar {$$ =$2;};
+read: Read identPar { var node = new IdentNode();
+					node.ident = $2;
+					Compiler.stackTree.Push(node); 
+					var nodeR = new ReadNode();
 					if(Compiler.stackTree.Count>0) nodeR.right = Compiler.stackTree.Pop();
 				    Compiler.stackTree.Push(nodeR);};
-
 write: Write exp{ var nodeW = new WriteNode();
 					if(Compiler.stackTree.Count>0) nodeW.right = Compiler.stackTree.Pop();
 					    Compiler.stackTree.Push(nodeW);}
-	| Write OpenPar exp ClosePar { Console.WriteLine("write");var nodeW = new WriteNode();
-					if(Compiler.stackTree.Count>0) nodeW.right = Compiler.stackTree.Pop();
-				    Compiler.stackTree.Push(nodeW);}
+
 	| Write String {
 					var nodeS = new StringNode();
 					nodeS.value = $2;
@@ -61,8 +66,7 @@ maincandeclare: declare maincandeclare
 
 	
 expression: read 
-	| write
-	| assign;
+	| write;
 
 main:	expression expression {Console.WriteLine("Syntax error");  ++Compiler.errors;
                yyerrok();
@@ -92,13 +96,19 @@ main:	expression expression {Console.WriteLine("Syntax error");  ++Compiler.erro
 				    if(Compiler.stackTree.Count>0) nodeM.left = Compiler.stackTree.Pop();
 				    Compiler.stackTree.Push(nodeM);
 				}
-	| error SemiCol  {Console.WriteLine("Error: in line {0}", $1.i_val);   ++Compiler.errors;
-               yyerrok();
+	| error SemiCol  {Console.WriteLine("Error SemiCol: in line {0} ", $1.i_val);   ++Compiler.errors;
+      
               } main
 	| error {Console.WriteLine("Error: in line {0}", $1.i_val);   ++Compiler.errors;
-               yyerrok();
+        
               } main
-	| Eof {Console.WriteLine("Error");}
+	| error Eof {Console.WriteLine("Error eof");  }
+	| Return SemiCol main { var nodeR = new ReturnNode();
+					Compiler.stackTree.Push(nodeR);
+					var nodeM = new MainNode();
+					if(Compiler.stackTree.Count>0) nodeM.right = Compiler.stackTree.Pop();
+				    if(Compiler.stackTree.Count>0) nodeM.left = Compiler.stackTree.Pop();
+				    Compiler.stackTree.Push(nodeM);}
 	|  { var nodeM = new MainNode();
 		 Compiler.stackTree.Push(nodeM);
 				};
@@ -115,8 +125,11 @@ while: While OpenPar exp ClosePar OpenBracket main CloseBracket {var nodeW = new
 					};
 
 whilebody: expression SemiCol 	
+	| exp SemiCol
 	| while 
-	| if  ;
+	| if  
+	| Return SemiCol { var nodeM = new ReturnNode();
+		 Compiler.stackTree.Push(nodeM);};
 
 declare : vtype Ident SemiCol {var node = new DeclarationNode(); 
 						  node.varType=$1; node.ident=$2;
@@ -150,19 +163,9 @@ exp: exp2 logicop exp  {var node = new LogicNode();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $4;
 					Compiler.stackTree.Push(node);}
-	| OpenPar exp ClosePar  logicop OpenPar exp ClosePar 
-					{var node = new LogicNode(); 
-					if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
-					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
-					node.type = $4;
-					Compiler.stackTree.Push(node);}
-	| exp2  logicop OpenPar exp ClosePar 
-					{var node = new LogicNode(); 
-					  if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
-					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
-					node.type = $2;
-					Compiler.stackTree.Push(node);}
-	| exp2;
+	| OpenPar exp ClosePar
+	| exp2
+	| assign;
 
 exp2: exp3 relatiop exp2
 		{
@@ -271,7 +274,7 @@ exp6: unary exp6   {var node = new UnaryNode();
 term: Ident {var node = new IdentNode();
 			node.ident = $1;
 			Compiler.stackTree.Push(node);}
-	| RealNumber {var node = new DoubleNode();
+	| RealNumber {var node = new DoubleNode();	
 					node.value=Double.Parse($1);
 						  Compiler.stackTree.Push(node);}
 	| IntNumber {var node = new IntNode();

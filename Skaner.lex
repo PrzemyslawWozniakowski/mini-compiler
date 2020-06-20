@@ -14,8 +14,8 @@ Ident       {alpha}{alnum}*
 
 %%
 
-"//".*        {}
-\"([^\""\r\n"]|\\.)*\"  {  yylval.val=yytext;	return (int)Tokens.String; } 
+"//".*        { }
+\"([^\"\\"\r\n"]|\\.)*\"  {  yylval.val=yytext;	return (int)Tokens.String; } 
 "(double)"    { return (int)Tokens.DoubleConv; }
 "(int)"       { return (int)Tokens.IntConv; }
 
