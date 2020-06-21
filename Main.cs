@@ -82,9 +82,7 @@ public class Compiler
 
     public static void GenCode(StructTree node)
     {
-        if (node.left != null) GenCode(node.left);
-        EmitCode(node.GenCode());
-        if (node.right != null) GenCode(node.right);
+        node.GenCode();
 
     }
     public static void EmitCode(string instr = null)
@@ -133,7 +131,7 @@ public abstract class StructTree
     public string type;
     public int line = -1;
     public abstract string CheckType();
-    public abstract string GenCode();
+    public abstract void GenCode();
     public StructTree left = null;
     public StructTree right = null;
 
@@ -150,10 +148,11 @@ public class MainNode : StructTree
         return "";
     }
 
-    public override string GenCode()
+    public override void GenCode()
     {
+       if(left!=null) left.GenCode();
+       if(right!=null) right.GenCode();
 
-        return "";
     }
 }
 
@@ -163,7 +162,7 @@ public class DeclarationNode : StructTree
     public string varType;
     public string ident;
     public bool isValid() { return Compiler.variables.ContainsKey(ident); }
-    public override string GenCode()
+    public override void GenCode()
     {
         string s = ".locals init";
         if (varType =="int")
@@ -174,7 +173,7 @@ public class DeclarationNode : StructTree
             s = s + "( bool _";
 
         s=s + $"{ident} )";
-        return s;
+        Compiler.EmitCode(s);
     }
 }
 
@@ -218,9 +217,10 @@ public class AssignNode : StructTree
         return Compiler.variables[ident];
     }
     public string ident;
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
+        if (left != null) left.GenCode();
+        if (right != null) right.GenCode();
     }
 }
 
@@ -248,9 +248,8 @@ public class LogicNode : StructTree
         }
         return "bool";
     }
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -290,9 +289,8 @@ public class RelationNode : StructTree
 
         return "bool";
     }
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -323,9 +321,10 @@ public class AddNode : StructTree
 
         return "double";
     }
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
+        right.GenCode();
+        left.GenCode();
     }
 }
 
@@ -356,9 +355,8 @@ public class MulNode : StructTree
 
         return "double";
     }
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -386,9 +384,8 @@ public class BitNode : StructTree
         }
         return "int";
     }
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -426,9 +423,8 @@ public class UnaryNode : StructTree
             str = "double";
         return str;
     }
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -445,9 +441,8 @@ public class IdentNode : StructTree
 
     }
     public string ident;
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -455,9 +450,9 @@ public class IntNode : StructTree
 {
     public override string CheckType() { return "int"; }
     public int value;
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
+        
     }
 }
 
@@ -466,9 +461,10 @@ public class DoubleNode : StructTree
 {
     public override string CheckType() { return "double"; }
     public double value;
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
+        string s = string.Format(System.Globalization.CultureInfo.InvariantCulture, "ldc.r8 {0}", value);
+        Compiler.EmitCode(s);
     }
 }
 
@@ -476,9 +472,8 @@ public class BoolNode : StructTree
 {
     public override string CheckType() { return "bool"; }
     public bool value;
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -487,9 +482,8 @@ public class StringNode : StructTree
 {
     public override string CheckType() { return "string"; }
     public string value;
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -501,9 +495,8 @@ public class WriteNode : StructTree
         if (left != null) left.CheckType();
         return "";
     }
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -516,9 +509,8 @@ public class ReadNode : StructTree
         return "";
     }
     public string value;
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -542,9 +534,8 @@ public class WhileNode : StructTree
         return "";
     }
     public string value;
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -567,9 +558,8 @@ public class IfNode : StructTree
 
         return "";
     }
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -593,9 +583,8 @@ public class IfElseNode : StructTree
         return "";
     }
     public StructTree elseNode;
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
     }
 }
 
@@ -606,9 +595,7 @@ public class ReturnNode : StructTree
 
         return "";
     }
-    public override string GenCode()
+    public override void GenCode()
     {
-        return "";
-
     }
 }

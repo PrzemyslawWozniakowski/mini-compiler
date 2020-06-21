@@ -127,8 +127,8 @@ main:	expression expression {Console.WriteLine("Syntax error");  ++Compiler.erro
 				    Compiler.stackTree.Push(nodeM);}
 	|  { var nodeM = new MainNode();
 		 nodeM.line=Compiler.line;
-		 Compiler.stackTree.Push(nodeM);
-				};
+		 Compiler.stackTree.Push(nodeM);}
+	| OpenBracket main CloseBracket main;
 
 
 while: While OpenPar exp ClosePar OpenBracket main CloseBracket {var nodeW = new WhileNode();
@@ -174,24 +174,25 @@ assign: Ident Assign exp  {var node = new AssignNode();
 						   	if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 						  Compiler.stackTree.Push(node);};
 
+exp: exp1
+	| assign;
 
-exp: exp2 logicop exp  {var node = new LogicNode(); 
+exp1: exp1 logicop exp2  {var node = new LogicNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $2;
 					Compiler.stackTree.Push(node);}
-	| OpenPar exp ClosePar  logicop exp  {var node = new LogicNode(); 
+	| exp1 logicop OpenPar exp ClosePar  {var node = new LogicNode(); 
 					node.line=Compiler.line;
 					 if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $4;
 					Compiler.stackTree.Push(node);}
 	| OpenPar exp ClosePar
-	| exp2
-	| assign;
+	| exp2;
 
-exp2: exp3 relatiop exp2
+exp2: exp2 relatiop exp3
 		{
 		 var node = new RelationNode(); 
 					node.line=Compiler.line;
@@ -199,7 +200,7 @@ exp2: exp3 relatiop exp2
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $2;
 					Compiler.stackTree.Push(node);}
-	|  OpenPar exp ClosePar relatiop exp2  
+	|  OpenPar exp ClosePar relatiop exp3  
 		 {var node = new RelationNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -213,7 +214,7 @@ exp2: exp3 relatiop exp2
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $4;
 					Compiler.stackTree.Push(node);}
-	| exp3 relatiop OpenPar exp ClosePar 
+	| exp2 relatiop OpenPar exp ClosePar 
 		 {var node = new RelationNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -222,19 +223,19 @@ exp2: exp3 relatiop exp2
 					Compiler.stackTree.Push(node);}
 	| exp3;
 
-exp3: exp4 addop exp3 {var node = new AddNode(); 
+exp3: exp3 addop exp4 {var node = new AddNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $2;
 					Compiler.stackTree.Push(node);}
-	| OpenPar exp ClosePar addop exp3 {var node = new AddNode(); 
+	| OpenPar exp ClosePar addop exp4 {var node = new AddNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $4;
 					Compiler.stackTree.Push(node);}
-	| exp4 addop OpenPar exp ClosePar {var node = new AddNode(); 
+	| exp3 addop OpenPar exp ClosePar {var node = new AddNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
@@ -249,7 +250,7 @@ exp3: exp4 addop exp3 {var node = new AddNode();
 					Compiler.stackTree.Push(node);}
 	| exp4;
 
-exp4: exp5 mulop exp4  {var node = new MulNode(); 
+exp4: exp4 mulop exp5  {var node = new MulNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
@@ -261,13 +262,13 @@ exp4: exp5 mulop exp4  {var node = new MulNode();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $4;
 					Compiler.stackTree.Push(node);}
-	| OpenPar exp ClosePar mulop exp4  {var node = new MulNode(); 
+	| OpenPar exp ClosePar mulop exp5  {var node = new MulNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $4;
 					Compiler.stackTree.Push(node);}
-	| exp5 mulop OpenPar exp ClosePar  {var node = new MulNode(); 
+	| exp4 mulop OpenPar exp ClosePar  {var node = new MulNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
@@ -275,19 +276,19 @@ exp4: exp5 mulop exp4  {var node = new MulNode();
 					Compiler.stackTree.Push(node);}
 	| exp5;
 
-exp5: exp6 bitop exp5  {var node = new BitNode(); 
+exp5: exp5 bitop exp6  {var node = new BitNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 					node.type = $2;
 					Compiler.stackTree.Push(node);}
-	|  OpenPar exp ClosePar bitop exp5  {var node = new BitNode(); 
+	|  OpenPar exp ClosePar bitop exp6  {var node = new BitNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
 						node.type = $4;
 					Compiler.stackTree.Push(node);}
-	|  exp6 bitop  OpenPar exp ClosePar  {var node = new BitNode(); 
+	|  exp5 bitop  OpenPar exp ClosePar  {var node = new BitNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
