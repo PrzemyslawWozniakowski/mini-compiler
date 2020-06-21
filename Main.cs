@@ -20,7 +20,7 @@ public class Compiler
     // pozostałe argumenty są ignorowane
     public static int Main(string[] args)
     {
-       
+
         string file = "";
         FileStream source;
         Console.WriteLine("\nSingle-Pass CIL Code Generator for Multiline Calculator - Gardens Point");
@@ -50,7 +50,9 @@ public class Compiler
 
         sw = new StreamWriter(file + ".il");
         GenProlog();
+
         parser.Parse();
+
         StructTree currentnode = tree;
         if (errors == 0)
             CheckTypeTree(currentnode);
@@ -126,10 +128,12 @@ public abstract class StructTree
 
 public class MainNode : StructTree
 {
-    public override string CheckType() {
+    public override string CheckType()
+    {
         if (left != null) left.CheckType();
         if (right != null) right.CheckType();
-        return ""; }
+        return "";
+    }
 
     public override string GenCode()
     {
@@ -163,20 +167,20 @@ public class AssignNode : StructTree
         }
         if (Compiler.variables[ident] == "bool" && typeL != "bool")
         {
-            Console.WriteLine($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.WriteLine($"Semantic error after line {line}. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
         }
 
         if (Compiler.variables[ident] == "int" && typeL != "int")
         {
-            Console.WriteLine($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.WriteLine($"Semantic error after line {line}. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
         }
 
 
         if (Compiler.variables[ident] == "double" && typeL == "bool")
         {
-            Console.WriteLine($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.WriteLine($"Semantic error after line {line}. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
         }
         return Compiler.variables[ident];
@@ -401,7 +405,7 @@ public class DoubleNode : StructTree
 
 public class BoolNode : StructTree
 {
-    public override string CheckType() {  return "bool"; }
+    public override string CheckType() { return "bool"; }
     public bool value;
     public override string GenCode()
     {
@@ -438,10 +442,10 @@ public class ReadNode : StructTree
 {
     public override string CheckType()
     {
-        if (right!=null) right.CheckType();
+        if (right != null) right.CheckType();
         if (left != null) left.CheckType();
         return "";
-        }
+    }
     public string value;
     public override string GenCode()
     {
@@ -460,6 +464,8 @@ public class WhileNode : StructTree
             Console.WriteLine($"While condition cannot be of type {type1}");
             Compiler.errors++;
         }
+        if (right != null) right.CheckType();
+
         return "";
     }
     public string value;
@@ -516,7 +522,7 @@ public class ReturnNode : StructTree
 {
     public override string CheckType()
     {
-   
+
         return "";
     }
     public override string GenCode()
