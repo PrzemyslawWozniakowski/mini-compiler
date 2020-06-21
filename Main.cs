@@ -50,12 +50,17 @@ public class Compiler
 
         sw = new StreamWriter(file + ".il");
         GenProlog();
-
         parser.Parse();
 
         StructTree currentnode = tree;
         if (errors == 0)
+        {
             CheckTypeTree(currentnode);
+        }
+        if (errors == 0)
+        {
+            GenCode(tree);
+        }
         GenEpilog();
         sw.Close();
         source.Close();
@@ -73,6 +78,14 @@ public class Compiler
     public static void CheckTypeTree(StructTree node)
     {
         node.CheckType();
+    }
+
+    public static void GenCode(StructTree node)
+    {
+        if (node.left != null) GenCode(node.left);
+        EmitCode(node.GenCode());
+        if (node.right != null) GenCode(node.right);
+
     }
     public static void EmitCode(string instr = null)
     {
@@ -130,8 +143,10 @@ public class MainNode : StructTree
 {
     public override string CheckType()
     {
-        if (left != null) left.CheckType();
-        if (right != null) right.CheckType();
+        string type1="", type2="";
+        if (left != null) type1 = left.CheckType();
+        if (right != null) type2 = right.CheckType();
+        if (type1 == "error" || type2 == "error") Console.WriteLine($" Error in line {line}");
         return "";
     }
 
@@ -150,7 +165,16 @@ public class DeclarationNode : StructTree
     public bool isValid() { return Compiler.variables.ContainsKey(ident); }
     public override string GenCode()
     {
-        return "";
+        string s = ".locals init";
+        if (varType =="int")
+            s = s + "( int32 _";
+        if (varType == "double")
+            s = s + "( float64 _";
+        if (varType == "bool")
+            s = s + "( bool _";
+
+        s=s + $"{ident} )";
+        return s;
     }
 }
 
@@ -159,36 +183,44 @@ public class AssignNode : StructTree
     public override string CheckType()
     {
         string typeL = left.CheckType();
+        if (typeL == "error") return "error";
+
         if (!Compiler.variables.ContainsKey(ident))
         {
-            Console.WriteLine($"Semantic error. Variable {ident} undeclared.");
+            Console.Write($"Semantic error. Variable {ident} undeclared.");
             Compiler.errors++;
-            return "";
+            return "error";
         }
         if (Compiler.variables[ident] == "bool" && typeL != "bool")
         {
-            Console.WriteLine($"Semantic error after line {line}. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.Write($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
+            return "error";
+
         }
 
         if (Compiler.variables[ident] == "int" && typeL != "int")
         {
-            Console.WriteLine($"Semantic error after line {line}. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.Write($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
+            return "error";
+
         }
 
 
         if (Compiler.variables[ident] == "double" && typeL == "bool")
         {
-            Console.WriteLine($"Semantic error after line {line}. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.Write($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
+            return "error";
+
         }
         return Compiler.variables[ident];
     }
     public string ident;
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -198,21 +230,27 @@ public class LogicNode : StructTree
     {
         string type1 = left.CheckType();
         string type2 = right.CheckType();
+        if (type1 == "error" || type2 == "error") return "error";
+
         if (type1 != "bool")
         {
-            Console.WriteLine($"Semantic error. Logic operation {type} cannot be applied to {type1}");
+            Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type1}");
             Compiler.errors++;
+            return "error";
+
         }
         if (type2 != "bool")
         {
-            Console.WriteLine($"Semantic error. Logic operation {type} cannot be applied to {type2}");
+            Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type2}");
             Compiler.errors++;
+            return "error";
+
         }
         return "bool";
     }
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -222,25 +260,31 @@ public class RelationNode : StructTree
     {
         string type1 = left.CheckType();
         string type2 = right.CheckType();
+        if (type1 == "error" || type2 == "error") return "error";
         if (type == ">" || type == "<" || type == "<=" || type == ">=")
         {
             if (type1 == "bool")
             {
-                Console.WriteLine($"Semantic error. Logic operation {type} cannot be applied to {type1}");
+                Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type1}");
                 Compiler.errors++;
+                return "error";
+
             }
             if (type2 == "bool")
             {
-                Console.WriteLine($"Semantic error. Logic operation {type} cannot be applied to {type2}");
+                Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type2}");
                 Compiler.errors++;
+                return "error";
             }
         }
         if (type == "==" || type == "!=")
         {
             if ((type1 == "bool" && type2 != "bool") || (type2 == "bool" && type1 != "bool"))
             {
-                Console.WriteLine($"Semantic error. Logic operation {type} cannot be applied to {type1} and {type2}");
+                Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type1} and {type2}");
                 Compiler.errors++;
+                return "error";
+
             }
         }
 
@@ -248,7 +292,7 @@ public class RelationNode : StructTree
     }
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -258,15 +302,21 @@ public class AddNode : StructTree
     {
         string type1 = left.CheckType();
         string type2 = right.CheckType();
+        if (type1 == "error" || type2 == "error") return "error";
+
         if (type1 == "bool")
         {
-            Console.WriteLine($"Semantic error. Add operation {type} cannot be applied to {type1}");
+            Console.Write($"Semantic error. Add operation {type} cannot be applied to {type1}");
             Compiler.errors++;
+            return "error";
+
         }
         if (type2 == "bool")
         {
-            Console.WriteLine($"Semantic error. Add operation {type} cannot be applied to {type2}");
+            Console.Write($"Semantic error. Add operation {type} cannot be applied to {type2}");
             Compiler.errors++;
+            return "error";
+
         }
         if (type1 == "int" && type1 == type2)
             return "int";
@@ -275,7 +325,7 @@ public class AddNode : StructTree
     }
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -285,15 +335,21 @@ public class MulNode : StructTree
     {
         string type1 = left.CheckType();
         string type2 = right.CheckType();
+        if (type1 == "error" || type2 == "error") return "error";
+
         if (type1 == "bool")
         {
-            Console.WriteLine($"Semantic error. Multiply operation {type} cannot be applied to {type1}");
+            Console.Write($"Semantic error. Multiply operation {type} cannot be applied to {type1}");
             Compiler.errors++;
+            return "error";
+
         }
         if (type2 == "bool")
         {
-            Console.WriteLine($"Semantic error. Multiply operation {type} cannot be applied to {type2}");
+            Console.Write($"Semantic error. Multiply operation {type} cannot be applied to {type2}");
             Compiler.errors++;
+            return "error";
+
         }
         if (type1 == "int" && type1 == type2)
             return "int";
@@ -302,7 +358,7 @@ public class MulNode : StructTree
     }
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -312,21 +368,27 @@ public class BitNode : StructTree
     {
         string type1 = left.CheckType();
         string type2 = right.CheckType();
+        if (type1 == "error" || type2 == "error") return "error";
+
         if (type1 != "int")
         {
-            Console.WriteLine($"Semantic error. Bit operation {type} cannot be applied to {type1}");
+            Console.Write($"Semantic error. Bit operation {type} cannot be applied to {type1}");
             Compiler.errors++;
+            return "error";
+
         }
         if (type2 != "int")
         {
-            Console.WriteLine($"Semantic error. Bit operation {type} cannot be applied to {type2}");
+            Console.Write($"Semantic error. Bit operation {type} cannot be applied to {type2}");
             Compiler.errors++;
+            return "error";
+
         }
         return "int";
     }
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -335,21 +397,28 @@ public class UnaryNode : StructTree
     public override string CheckType()
     {
         string str = left.CheckType();
+        if (str == "error") return "error";
 
         if (type == "-" && str != "double" && str != "int")
         {
             Compiler.errors++;
-            Console.WriteLine("Syntax Error. Unary operator - can't be applied to bool value.");
+            Console.Write("Semantic error. Unary operator - can't be applied to bool value.");
+            return "error";
+
         }
         if (type == "~" && str != "int")
         {
             Compiler.errors++;
-            Console.WriteLine($"Syntax Error. Unary operator ~ can't be applied to {str} value.");
+            Console.Write($"Semantic error. Unary operator ~ can't be applied to {str} value.");
+            return "error";
+
         }
         if (type == "!" && str != "bool")
         {
             Compiler.errors++;
-            Console.WriteLine($"Syntax Error. Unary operator ! can't be applied to {str} value.");
+            Console.Write($"Semontic error. Unary operator ! can't be applied to {str} value.");
+            return "error";
+
         }
         if (type == "(int)")
             str = "int";
@@ -359,7 +428,7 @@ public class UnaryNode : StructTree
     }
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -370,15 +439,15 @@ public class IdentNode : StructTree
         if (Compiler.variables.ContainsKey(ident))
             return Compiler.variables[ident];
 
-        Console.WriteLine($"Semantic error. Variable {ident} wasn't declared.");
+        Console.Write($"Semantic error. Variable {ident} wasn't declared.");
         Compiler.errors++;
+        return "error";
 
-        return "";
     }
     public string ident;
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -388,7 +457,7 @@ public class IntNode : StructTree
     public int value;
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -399,7 +468,7 @@ public class DoubleNode : StructTree
     public double value;
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -409,7 +478,7 @@ public class BoolNode : StructTree
     public bool value;
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -420,7 +489,7 @@ public class StringNode : StructTree
     public string value;
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -434,7 +503,7 @@ public class WriteNode : StructTree
     }
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -449,7 +518,7 @@ public class ReadNode : StructTree
     public string value;
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -459,10 +528,14 @@ public class WhileNode : StructTree
     {
 
         string type1 = left.CheckType();
+        if (type1 == "error") return "error";
+
         if (type1 != "bool")
         {
-            Console.WriteLine($"While condition cannot be of type {type1}");
+            Console.Write($"While condition cannot be of type {type1}");
             Compiler.errors++;
+            return "error";
+
         }
         if (right != null) right.CheckType();
 
@@ -471,7 +544,7 @@ public class WhileNode : StructTree
     public string value;
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -481,10 +554,14 @@ public class IfNode : StructTree
     public override string CheckType()
     {
         string type1 = left.CheckType();
+        if (type1 == "error") return "error";
+
         if (type1 != "bool")
         {
-            Console.WriteLine($"If condition cannot be of type {type1}");
+            Console.Write($"If condition cannot be of type {type1}");
             Compiler.errors++;
+            return "error";
+
         }
         if (right != null) right.CheckType();
 
@@ -492,7 +569,7 @@ public class IfNode : StructTree
     }
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -502,10 +579,14 @@ public class IfElseNode : StructTree
     public override string CheckType()
     {
         string type1 = left.CheckType();
+        if (type1 == "error") return "error";
+
         if (type1 != "bool")
         {
-            Console.WriteLine($"If condition cannot be of type {type1}");
+            Console.Write($"If condition cannot be of type {type1}");
             Compiler.errors++;
+            return "error";
+
         }
         if (elseNode != null) elseNode.CheckType();
         if (right != null) right.CheckType();
@@ -514,7 +595,7 @@ public class IfElseNode : StructTree
     public StructTree elseNode;
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
     }
 }
 
@@ -527,6 +608,7 @@ public class ReturnNode : StructTree
     }
     public override string GenCode()
     {
-        throw new NotImplementedException();
+        return "";
+
     }
 }
