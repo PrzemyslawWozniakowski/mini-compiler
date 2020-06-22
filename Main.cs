@@ -100,7 +100,7 @@ public class Compiler
     private static void GenProlog()
     {
         EmitCode(".assembly extern mscorlib { }");
-        EmitCode(".assembly calculator { }");
+        EmitCode(".assembly Compilator { }");
         EmitCode(".method static void main()");
         EmitCode("{");
         EmitCode(".entrypoint");
@@ -164,16 +164,31 @@ public class DeclarationNode : StructTree
     public bool isValid() { return Compiler.variables.ContainsKey(ident); }
     public override void GenCode()
     {
-        string s = ".locals init";
+        string s = ".locals init ";
         if (varType =="int")
-            s = s + "( int32 _";
+            s = s + "( int32 ";
         if (varType == "double")
-            s = s + "( float64 _";
+            s = s + "( float64 ";
         if (varType == "bool")
-            s = s + "( bool _";
+            s = s + "( bool ";
 
         s=s + $"{ident} )";
+
         Compiler.EmitCode(s);
+
+        s = $"ldc.";
+        if (varType == "int")
+            s = s + $"i4 0";
+        if (varType == "double")
+            s = s + $"r8 0.0";
+        if (varType == "bool")
+            s = s + "i4.0";
+
+        Compiler.EmitCode(s);
+         s = $"stloc {ident}";
+        Compiler.EmitCode(s);
+
+
     }
 }
 
@@ -221,6 +236,8 @@ public class AssignNode : StructTree
     {
         if (left != null) left.GenCode();
         if (right != null) right.GenCode();
+        string s = $"stloc {ident}";
+        Compiler.EmitCode(s);
     }
 }
 
@@ -325,6 +342,8 @@ public class AddNode : StructTree
     {
         right.GenCode();
         left.GenCode();
+        string s = "add";
+        Compiler.EmitCode(s);
     }
 }
 
@@ -443,6 +462,7 @@ public class IdentNode : StructTree
     public string ident;
     public override void GenCode()
     {
+        Compiler.EmitCode($"ldloc {ident}");
     }
 }
 
@@ -452,7 +472,8 @@ public class IntNode : StructTree
     public int value;
     public override void GenCode()
     {
-        
+        string s = string.Format("ldc.i4 {0}", value);
+        Compiler.EmitCode(s);
     }
 }
 
@@ -497,6 +518,16 @@ public class WriteNode : StructTree
     }
     public override void GenCode()
     {
+        string s = "ldstr \" {0} \"";
+        Compiler.EmitCode(s);
+        if (right != null) right.GenCode();
+        if (left != null) left.GenCode();
+        if (right != null && right.CheckType() == "double")
+            s = "box[mscorlib]System.Double";
+        Compiler.EmitCode(s);
+        s = "call void [mscorlib]System.Console::WriteLine(string, object)";
+        Compiler.EmitCode(s);
+        
     }
 }
 
