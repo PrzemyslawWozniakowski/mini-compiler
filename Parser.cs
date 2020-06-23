@@ -4,9 +4,9 @@
 
 // GPPG version 1.5.2
 // Machine:  LAPTOP-MOD8PJ2Q
-// DateTime: 22.06.2020 01:00:17
+// DateTime: 23.06.2020 18:03:15
 // UserName: przem
-// Input file <Parser.y - 22.06.2020 01:00:16>
+// Input file <Parser.y - 23.06.2020 18:02:44>
 
 // options: lines gplex
 
@@ -631,7 +631,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 					node.line=Compiler.line;
 					 if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
-					node.type = ValueStack[ValueStack.Depth-2].type;
+					node.type = ValueStack[ValueStack.Depth-4].type;
 					Compiler.stackTree.Push(node);}
 #line default
         break;
@@ -907,6 +907,16 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
       case 91: // unary -> DoubleConv
 #line 351 "Parser.y"
                {CurrentSemanticValue.type="(double)";}
+#line default
+        break;
+      case 92: // logicop -> Or
+#line 353 "Parser.y"
+             {CurrentSemanticValue.type="||";}
+#line default
+        break;
+      case 93: // logicop -> And
+#line 354 "Parser.y"
+        {CurrentSemanticValue.type="&&";}
 #line default
         break;
       case 94: // relatiop -> Equal

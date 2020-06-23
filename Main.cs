@@ -172,7 +172,7 @@ public class DeclarationNode : StructTree
         if (varType == "bool")
             s = s + "( bool ";
 
-        s=s + $"{ident} )";
+        s=s + $"_{ident} )";
 
         Compiler.EmitCode(s);
 
@@ -185,7 +185,7 @@ public class DeclarationNode : StructTree
             s = s + "i4.0";
 
         Compiler.EmitCode(s);
-         s = $"stloc {ident}";
+         s = $"stloc _{ident}";
         Compiler.EmitCode(s);
 
 
@@ -236,7 +236,7 @@ public class AssignNode : StructTree
     {
         if (left != null) left.GenCode();
         if (right != null) right.GenCode();
-        string s = $"stloc {ident}";
+        string s = $"stloc _{ident}";
         Compiler.EmitCode(s);
     }
 }
@@ -267,6 +267,13 @@ public class LogicNode : StructTree
     }
     public override void GenCode()
     {
+        if (left != null) left.GenCode();
+        if (right != null) right.GenCode();
+
+        if (type == "&&")
+            Compiler.EmitCode("and");
+        if (type == "||")
+            Compiler.EmitCode("or");
     }
 }
 
@@ -308,6 +315,30 @@ public class RelationNode : StructTree
     }
     public override void GenCode()
     {
+        if (left != null) left.GenCode();
+        if (right != null) right.GenCode();
+
+        if (type == "==")
+            Compiler.EmitCode("ceq");
+        if (type == "!=")
+        {
+            Compiler.EmitCode("ceq");
+            Compiler.EmitCode("not");
+        }
+        if (type == ">")
+            Compiler.EmitCode("cgt");
+        if (type == "<=")
+        {
+            Compiler.EmitCode("cgt");
+            Compiler.EmitCode("not");
+        }
+        if (type == "<")
+            Compiler.EmitCode("clt");
+        if (type == ">=")
+        {
+            Compiler.EmitCode("clt");
+            Compiler.EmitCode("not");
+        }
     }
 }
 
@@ -342,7 +373,11 @@ public class AddNode : StructTree
     {
         right.GenCode();
         left.GenCode();
-        string s = "add";
+        string s;
+        if (type == "+")
+            s = "add";
+        else
+            s = "sub";
         Compiler.EmitCode(s);
     }
 }
@@ -376,6 +411,14 @@ public class MulNode : StructTree
     }
     public override void GenCode()
     {
+        right.GenCode();
+        left.GenCode();
+        string s;
+        if (type == "*")
+            s = "mul";
+        else
+            s = "div";
+        Compiler.EmitCode(s);
     }
 }
 
@@ -405,6 +448,12 @@ public class BitNode : StructTree
     }
     public override void GenCode()
     {
+        if (left != null) left.GenCode();
+
+        if (type == "&")
+            Compiler.EmitCode("and");
+        if (type == "|")
+            Compiler.EmitCode("or");
     }
 }
 
@@ -444,9 +493,34 @@ public class UnaryNode : StructTree
     }
     public override void GenCode()
     {
+        left.GenCode();
+        string s = "";
+        if (type == "-")
+        {
+            s = "neg";
+            Compiler.EmitCode(s);
+
+        }
+        if (type == "!" | type == "~")
+        {
+            s = "not";
+            Compiler.EmitCode(s);
+
+        }
+        if (type == "(int)")
+        {
+            s = "conv.i4";
+            Compiler.EmitCode(s);
+
+        }
+        if (type == "(double)")
+        {
+            s = "conv.r8";
+            Compiler.EmitCode(s);
+
+        }
     }
 }
-
 public class IdentNode : StructTree
 {
     public override string CheckType()
@@ -462,7 +536,7 @@ public class IdentNode : StructTree
     public string ident;
     public override void GenCode()
     {
-        Compiler.EmitCode($"ldloc {ident}");
+        Compiler.EmitCode($"ldloc _{ident}");
     }
 }
 
@@ -495,6 +569,10 @@ public class BoolNode : StructTree
     public bool value;
     public override void GenCode()
     {
+        if (value)
+            Compiler.EmitCode("ldc.i4 1");
+        else
+            Compiler.EmitCode("ldc.i4 0");
     }
 }
 
@@ -518,16 +596,18 @@ public class WriteNode : StructTree
     }
     public override void GenCode()
     {
-        string s = "ldstr \" {0} \"";
+        string s = "ldstr \" {0:0.000000} \"";
         Compiler.EmitCode(s);
         if (right != null) right.GenCode();
         if (left != null) left.GenCode();
         if (right != null && right.CheckType() == "double")
             s = "box[mscorlib]System.Double";
+        if (right != null && right.CheckType() == "bool")
+            s = "box[mscorlib]System.Boolean";
+
         Compiler.EmitCode(s);
         s = "call void [mscorlib]System.Console::WriteLine(string, object)";
-        Compiler.EmitCode(s);
-        
+        Compiler.EmitCode(s);     
     }
 }
 

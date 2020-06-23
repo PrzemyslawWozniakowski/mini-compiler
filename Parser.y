@@ -187,7 +187,7 @@ exp1: exp1 logicop exp2  {var node = new LogicNode();
 					node.line=Compiler.line;
 					 if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
 					if(Compiler.stackTree.Count>0) node.right = Compiler.stackTree.Pop();
-					node.type = $4;
+					node.type = $2;
 					Compiler.stackTree.Push(node);}
 	| OpenPar exp ClosePar
 	| exp2;
@@ -350,8 +350,8 @@ unary: Minus  {$$="-";}
 	| IntConv  {$$="(int)";}
 	| DoubleConv  {$$="(double)";};
 
-logicop: Or
-	| And;
+logicop: Or  {$$="||";}
+	| And  {$$="&&";};
 
 relatiop: Equal  {$$="==";}
 	| NotEqual  {$$="!=";}
