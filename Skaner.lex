@@ -25,9 +25,9 @@ Ident       {alpha}{alnum}*
 "else"	      { return (int)Tokens.Else;}
 "while"	      { return (int)Tokens.While;}
 "read"	      { return (int)Tokens.Read;}
-"int"         { return (int)Tokens.Int;}
-"double"      { return (int)Tokens.Double;}  
-"bool"        { return (int)Tokens.Bool;}
+"int "         { return (int)Tokens.Int;}
+"double "      { return (int)Tokens.Double;}  
+"bool "        { return (int)Tokens.Bool;}
 "true"        { return (int)Tokens.True;}
 "false"       { return (int)Tokens.False;}
 "return"	  { return (int)Tokens.Return;}
