@@ -583,6 +583,7 @@ public class StringNode : StructTree
     public string value;
     public override void GenCode()
     {
+        Compiler.EmitCode($"ldstr {value}");
     }
 }
 
@@ -596,18 +597,34 @@ public class WriteNode : StructTree
     }
     public override void GenCode()
     {
-        string s = "ldstr \" {0:0.000000} \"";
-        Compiler.EmitCode(s);
-        if (right != null) right.GenCode();
-        if (left != null) left.GenCode();
-        if (right != null && right.CheckType() == "double")
-            s = "box[mscorlib]System.Double";
-        if (right != null && right.CheckType() == "bool")
-            s = "box[mscorlib]System.Boolean";
-
-        Compiler.EmitCode(s);
-        s = "call void [mscorlib]System.Console::WriteLine(string, object)";
-        Compiler.EmitCode(s);     
+        string s = "";
+        string rightT = right.CheckType();
+        if (rightT != "string")
+        {
+            if (rightT == "double")
+                s = "ldstr \"{0:0.000000}\"";
+            else
+                s = "ldstr \"{0}\"";
+            Compiler.EmitCode(s);
+            if (right != null) right.GenCode();
+            if (left != null) left.GenCode();
+            if (right != null && rightT == "int")
+                s = "box[mscorlib]System.Int32";
+            if (right != null && rightT == "double")
+                s = "box[mscorlib]System.Double";
+            if (right != null && rightT == "bool")
+                s = "box[mscorlib]System.Boolean";
+            Compiler.EmitCode(s);
+            s = "call void [mscorlib]System.Console::WriteLine(string, object)";
+            Compiler.EmitCode(s);
+        }
+        else
+        {
+            if (right != null) right.GenCode();
+            if (left != null) left.GenCode();
+            s = "call void [mscorlib]System.Console::WriteLine(string)";
+            Compiler.EmitCode(s);
+        }
     }
 }
 
