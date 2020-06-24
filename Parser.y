@@ -44,12 +44,9 @@ ifbody: OpenBracket main CloseBracket
 
 identPar: Ident {$$=$1;}
 	| OpenPar identPar ClosePar {$$ =$2;};
-read: Read identPar { var node = new IdentNode();
-					node.ident = $2;
-					node.line=Compiler.line;
-					Compiler.stackTree.Push(node); 
+read: Read identPar { 
 					var nodeR = new ReadNode();
-					if(Compiler.stackTree.Count>0) nodeR.right = Compiler.stackTree.Pop();
+					nodeR.value=$2;
 				    Compiler.stackTree.Push(nodeR);};
 write: Write exp{ var nodeW = new WriteNode();
 					nodeW.line=Compiler.line;

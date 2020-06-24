@@ -12,6 +12,7 @@ public class Compiler
 
     public static int errors = 0;
     public static int line = 1;
+    public static int etNumber = 1;
     public static List<string> source;
     public static StructTree tree;
     public static Dictionary<string, string> variables = new Dictionary<string, string>();
@@ -106,6 +107,7 @@ public class Compiler
         EmitCode(".entrypoint");
         EmitCode(".try");
         EmitCode("{");
+        EmitCode(" .maxstack 8");
         EmitCode();
 
         EmitCode();
@@ -141,7 +143,7 @@ public class MainNode : StructTree
 {
     public override string CheckType()
     {
-        string type1="", type2="";
+        string type1 = "", type2 = "";
         if (left != null) type1 = left.CheckType();
         if (right != null) type2 = right.CheckType();
         if (type1 == "error" || type2 == "error") Console.WriteLine($" Error in line {line}");
@@ -150,8 +152,8 @@ public class MainNode : StructTree
 
     public override void GenCode()
     {
-       if(left!=null) left.GenCode();
-       if(right!=null) right.GenCode();
+        if (left != null) left.GenCode();
+        if (right != null) right.GenCode();
 
     }
 }
@@ -165,14 +167,14 @@ public class DeclarationNode : StructTree
     public override void GenCode()
     {
         string s = ".locals init ";
-        if (varType =="int")
+        if (varType == "int")
             s = s + "( int32 ";
         if (varType == "double")
             s = s + "( float64 ";
         if (varType == "bool")
             s = s + "( bool ";
 
-        s=s + $"_{ident} )";
+        s = s + $"_{ident} )";
 
         Compiler.EmitCode(s);
 
@@ -185,7 +187,7 @@ public class DeclarationNode : StructTree
             s = s + "i4.0";
 
         Compiler.EmitCode(s);
-         s = $"stloc _{ident}";
+        s = $"stloc _{ident}";
         Compiler.EmitCode(s);
 
 
@@ -236,6 +238,7 @@ public class AssignNode : StructTree
     {
         if (left != null) left.GenCode();
         if (right != null) right.GenCode();
+        if (left.CheckType() == "double") Compiler.EmitCode("conv.i4");
         string s = $"stloc _{ident}";
         Compiler.EmitCode(s);
     }
@@ -315,8 +318,8 @@ public class RelationNode : StructTree
     }
     public override void GenCode()
     {
-        if (left != null) left.GenCode();
         if (right != null) right.GenCode();
+        if (left != null) left.GenCode();
 
         if (type == "==")
             Compiler.EmitCode("ceq");
@@ -371,8 +374,16 @@ public class AddNode : StructTree
     }
     public override void GenCode()
     {
+        string rightT = right.CheckType();
+        string leftT = left.CheckType();
+
         right.GenCode();
+        if (leftT == "double" && rightT != "double")
+            Compiler.EmitCode("conv.r8");
         left.GenCode();
+        if (leftT != "double" && rightT == "double")
+            Compiler.EmitCode("conv.r8");
+
         string s;
         if (type == "+")
             s = "add";
@@ -411,8 +422,15 @@ public class MulNode : StructTree
     }
     public override void GenCode()
     {
+        string rightT = right.CheckType();
+        string leftT = left.CheckType();
+
         right.GenCode();
+        if (leftT == "double" && rightT != "double")
+            Compiler.EmitCode("conv.r8");
         left.GenCode();
+        if (leftT != "double" && rightT == "double")
+            Compiler.EmitCode("conv.r8");
         string s;
         if (type == "*")
             s = "mul";
@@ -597,33 +615,40 @@ public class WriteNode : StructTree
     }
     public override void GenCode()
     {
-        string s = "";
         string rightT = right.CheckType();
         if (rightT != "string")
         {
             if (rightT == "double")
-                s = "ldstr \"{0:0.000000}\"";
+            {
+                Compiler.EmitCode(" call class [mscorlib]System.Globalization.CultureInfo [mscorlib]System.Globalization.CultureInfo::get_InvariantCulture()");
+                Compiler.EmitCode("ldstr \"{0:0.000000}\"");
+            }
             else
-                s = "ldstr \"{0}\"";
-            Compiler.EmitCode(s);
+            {
+                Compiler.EmitCode("ldstr \"{0}\"");
+            }
             if (right != null) right.GenCode();
             if (left != null) left.GenCode();
             if (right != null && rightT == "int")
-                s = "box[mscorlib]System.Int32";
+                Compiler.EmitCode("box[mscorlib]System.Int32");
             if (right != null && rightT == "double")
-                s = "box[mscorlib]System.Double";
+                Compiler.EmitCode("box[mscorlib]System.Double");
             if (right != null && rightT == "bool")
-                s = "box[mscorlib]System.Boolean";
-            Compiler.EmitCode(s);
-            s = "call void [mscorlib]System.Console::WriteLine(string, object)";
-            Compiler.EmitCode(s);
+                Compiler.EmitCode("box[mscorlib]System.Boolean");
+
+            if (rightT == "double")
+            {
+                Compiler.EmitCode("call string [mscorlib]System.String::Format(class [mscorlib]System.IFormatProvider,string,object)");
+                Compiler.EmitCode("call void [mscorlib]System.Console::WriteLine(string)");
+            }
+            else
+                Compiler.EmitCode("call void [mscorlib]System.Console::WriteLine(string, object)");
         }
         else
         {
             if (right != null) right.GenCode();
             if (left != null) left.GenCode();
-            s = "call void [mscorlib]System.Console::WriteLine(string)";
-            Compiler.EmitCode(s);
+            Compiler.EmitCode("call void [mscorlib]System.Console::WriteLine(string)");
         }
     }
 }
@@ -632,13 +657,30 @@ public class ReadNode : StructTree
 {
     public override string CheckType()
     {
-        if (right != null) right.CheckType();
-        if (left != null) left.CheckType();
-        return "";
+        if (Compiler.variables.ContainsKey(value))
+            return Compiler.variables[value];
+
+        Console.Write($"Semantic error. Variable {value} wasn't declared.");
+        Compiler.errors++;
+        return "error";
     }
     public string value;
     public override void GenCode()
     {
+
+        Compiler.EmitCode("call string [mscorlib]System.Console::ReadLine()");
+        if (Compiler.variables[value] == "double")
+        {
+            Compiler.EmitCode(" call  class [mscorlib]System.Globalization.CultureInfo [mscorlib]System.Globalization.CultureInfo::get_InvariantCulture()");
+            Compiler.EmitCode(" call  float64 [mscorlib]System.Double::Parse(string,class [mscorlib]System.IFormatProvider)");
+        }
+        if (Compiler.variables[value] == "int")
+            Compiler.EmitCode(" call  int32 [mscorlib]System.Int32::Parse(string)");
+        if (Compiler.variables[value] == "bool")
+            Compiler.EmitCode(" call bool [mscorlib]System.Bool" +
+                "::Parse(string)");
+
+        Compiler.EmitCode($"stloc _{value}");
     }
 }
 
@@ -652,7 +694,7 @@ public class WhileNode : StructTree
 
         if (type1 != "bool")
         {
-            Console.Write($"While condition cannot be of type {type1}");
+            Console.Write($"Semantic error. While condition cannot be of type {type1}");
             Compiler.errors++;
             return "error";
 
@@ -664,6 +706,17 @@ public class WhileNode : StructTree
     public string value;
     public override void GenCode()
     {
+        int etykieta1 = Compiler.etNumber;
+        Compiler.etNumber++;
+        int etykieta2 = Compiler.etNumber;
+        Compiler.etNumber++;
+        Compiler.EmitCode($"et{etykieta1}: nop");
+        if (left != null) left.GenCode();
+        Compiler.EmitCode($"brfalse  et{etykieta2}");
+        if (right != null) right.GenCode();
+        Compiler.EmitCode($"br et{etykieta1}");
+        Compiler.EmitCode($"et{etykieta2}: nop");
+
     }
 }
 

@@ -4,9 +4,9 @@
 
 // GPPG version 1.5.2
 // Machine:  LAPTOP-MOD8PJ2Q
-// DateTime: 23.06.2020 18:03:15
+// DateTime: 24.06.2020 15:52:30
 // UserName: przem
-// Input file <Parser.y - 23.06.2020 18:02:44>
+// Input file <Parser.y - 24.06.2020 15:51:01>
 
 // options: lines gplex
 
@@ -416,17 +416,14 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
         break;
       case 14: // read -> Read, identPar
 #line 47 "Parser.y"
-                    { var node = new IdentNode();
-					node.ident = ValueStack[ValueStack.Depth-1].type;
-					node.line=Compiler.line;
-					Compiler.stackTree.Push(node); 
+                    { 
 					var nodeR = new ReadNode();
-					if(Compiler.stackTree.Count>0) nodeR.right = Compiler.stackTree.Pop();
+					nodeR.value=ValueStack[ValueStack.Depth-1].type;
 				    Compiler.stackTree.Push(nodeR);}
 #line default
         break;
       case 15: // write -> Write, exp
-#line 54 "Parser.y"
+#line 51 "Parser.y"
                 { var nodeW = new WriteNode();
 					nodeW.line=Compiler.line;
 					if(Compiler.stackTree.Count>0) nodeW.right = Compiler.stackTree.Pop();
@@ -434,7 +431,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 16: // write -> Write, String
-#line 59 "Parser.y"
+#line 56 "Parser.y"
                 {
 					var nodeS = new StringNode();
 					nodeS.line=Compiler.line;
@@ -445,7 +442,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 17: // maincandeclare -> declare, maincandeclare
-#line 68 "Parser.y"
+#line 65 "Parser.y"
      {  
 				    var nodeM = new MainNode();
 					nodeM.line=Compiler.line;
@@ -456,19 +453,19 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 18: // maincandeclare -> main
-#line 75 "Parser.y"
+#line 72 "Parser.y"
         {}
 #line default
         break;
       case 21: // Anon@1 -> /* empty */
-#line 81 "Parser.y"
+#line 78 "Parser.y"
                             {Console.WriteLine("Syntax error");  ++Compiler.errors;
                yyerrok();
                 }
 #line default
         break;
       case 23: // main -> expression, semicol, main
-#line 85 "Parser.y"
+#line 82 "Parser.y"
     {  
 				    var nodeM = new MainNode();
 					nodeM.line=Compiler.line;
@@ -479,7 +476,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 24: // main -> exp, semicol, main
-#line 92 "Parser.y"
+#line 89 "Parser.y"
                     {  
 				    var nodeM = new MainNode();
 					nodeM.line=Compiler.line;
@@ -490,7 +487,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 25: // main -> while, main
-#line 99 "Parser.y"
+#line 96 "Parser.y"
               {  
 				    var nodeM = new MainNode();
 					nodeM.line=Compiler.line; 
@@ -501,7 +498,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 26: // main -> if, main
-#line 106 "Parser.y"
+#line 103 "Parser.y"
             {  
 				    var nodeM = new MainNode();
 					nodeM.line=Compiler.line;
@@ -512,26 +509,26 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 27: // Anon@2 -> /* empty */
-#line 113 "Parser.y"
+#line 110 "Parser.y"
                   {Console.WriteLine("Error while parsing (syntax or lexical error): in line {0} ", ValueStack[ValueStack.Depth-2].i_val);   ++Compiler.errors;
       yyerrok();
 	              }
 #line default
         break;
       case 29: // Anon@3 -> /* empty */
-#line 116 "Parser.y"
+#line 113 "Parser.y"
          {Console.WriteLine("Error while parsing (syntax or lexical error)");   ++Compiler.errors;
         yyerrok();
               }
 #line default
         break;
       case 31: // main -> error, Eof
-#line 119 "Parser.y"
+#line 116 "Parser.y"
              {Console.WriteLine("Unexpected end of file");  ++Compiler.errors; YYAbort();}
 #line default
         break;
       case 32: // main -> Return, semicol, main
-#line 120 "Parser.y"
+#line 117 "Parser.y"
                        { var nodeR = new ReturnNode();
 					nodeR.line=Compiler.line;
 					Compiler.stackTree.Push(nodeR);
@@ -543,14 +540,14 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 33: // main -> /* empty */
-#line 128 "Parser.y"
+#line 125 "Parser.y"
     { var nodeM = new MainNode();
 		 nodeM.line=Compiler.line;
 		 Compiler.stackTree.Push(nodeM);}
 #line default
         break;
       case 35: // while -> While, OpenPar, exp, ClosePar, OpenBracket, main, CloseBracket
-#line 134 "Parser.y"
+#line 131 "Parser.y"
                                                                 {var nodeW = new WhileNode();
 					nodeW.line=Compiler.line;
 					if(Compiler.stackTree.Count>0) nodeW.right = Compiler.stackTree.Pop();
@@ -560,7 +557,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 36: // while -> While, OpenPar, exp, ClosePar, whilebody
-#line 140 "Parser.y"
+#line 137 "Parser.y"
                                          {var nodeW = new WhileNode();
 					nodeW.line=Compiler.line;
 					if(Compiler.stackTree.Count>0) nodeW.right = Compiler.stackTree.Pop();
@@ -570,13 +567,13 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 41: // whilebody -> Return, semicol
-#line 151 "Parser.y"
+#line 148 "Parser.y"
                   { var nodeM = new ReturnNode();
 		 Compiler.stackTree.Push(nodeM);}
 #line default
         break;
       case 42: // declare -> vtype, Ident, semicol
-#line 154 "Parser.y"
+#line 151 "Parser.y"
                               {var node = new DeclarationNode(); 
 						  node.line=Compiler.line;
 						  node.varType=ValueStack[ValueStack.Depth-3].type; node.ident=ValueStack[ValueStack.Depth-2].val;
@@ -592,22 +589,22 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 43: // vtype -> Int
-#line 167 "Parser.y"
+#line 164 "Parser.y"
            {CurrentSemanticValue.type="int";}
 #line default
         break;
       case 44: // vtype -> Double
-#line 168 "Parser.y"
+#line 165 "Parser.y"
           {CurrentSemanticValue.type="double";}
 #line default
         break;
       case 45: // vtype -> Bool
-#line 169 "Parser.y"
+#line 166 "Parser.y"
         {CurrentSemanticValue.type = "bool";}
 #line default
         break;
       case 46: // assign -> Ident, Assign, exp
-#line 171 "Parser.y"
+#line 168 "Parser.y"
                           {var node = new AssignNode(); 
 						   node.line=Compiler.line;
 						   node.ident=ValueStack[ValueStack.Depth-3].val;
@@ -616,7 +613,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 49: // exp1 -> exp1, logicop, exp2
-#line 180 "Parser.y"
+#line 177 "Parser.y"
                          {var node = new LogicNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -626,7 +623,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 50: // exp1 -> exp1, logicop, OpenPar, exp, ClosePar
-#line 186 "Parser.y"
+#line 183 "Parser.y"
                                       {var node = new LogicNode(); 
 					node.line=Compiler.line;
 					 if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -636,7 +633,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 53: // exp2 -> exp2, relatiop, exp3
-#line 196 "Parser.y"
+#line 193 "Parser.y"
   {
 		 var node = new RelationNode(); 
 					node.line=Compiler.line;
@@ -647,7 +644,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 54: // exp2 -> OpenPar, exp, ClosePar, relatiop, exp3
-#line 204 "Parser.y"
+#line 201 "Parser.y"
    {var node = new RelationNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -657,7 +654,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 55: // exp2 -> OpenPar, exp, ClosePar, relatiop, OpenPar, exp, ClosePar
-#line 211 "Parser.y"
+#line 208 "Parser.y"
    {var node = new RelationNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -667,7 +664,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 56: // exp2 -> exp2, relatiop, OpenPar, exp, ClosePar
-#line 218 "Parser.y"
+#line 215 "Parser.y"
    {var node = new RelationNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -677,7 +674,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 58: // exp3 -> exp3, addop, exp4
-#line 226 "Parser.y"
+#line 223 "Parser.y"
                       {var node = new AddNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -687,7 +684,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 59: // exp3 -> OpenPar, exp, ClosePar, addop, exp4
-#line 232 "Parser.y"
+#line 229 "Parser.y"
                                    {var node = new AddNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -697,7 +694,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 60: // exp3 -> exp3, addop, OpenPar, exp, ClosePar
-#line 238 "Parser.y"
+#line 235 "Parser.y"
                                    {var node = new AddNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -707,7 +704,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 61: // exp3 -> OpenPar, exp, ClosePar, addop, OpenPar, exp, ClosePar
-#line 245 "Parser.y"
+#line 242 "Parser.y"
      {var node = new AddNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -717,7 +714,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 63: // exp4 -> exp4, mulop, exp5
-#line 253 "Parser.y"
+#line 250 "Parser.y"
                        {var node = new MulNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -727,7 +724,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 64: // exp4 -> OpenPar, exp, ClosePar, mulop, OpenPar, exp, ClosePar
-#line 259 "Parser.y"
+#line 256 "Parser.y"
                                                     {var node = new MulNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -737,7 +734,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 65: // exp4 -> OpenPar, exp, ClosePar, mulop, exp5
-#line 265 "Parser.y"
+#line 262 "Parser.y"
                                     {var node = new MulNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -747,7 +744,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 66: // exp4 -> exp4, mulop, OpenPar, exp, ClosePar
-#line 271 "Parser.y"
+#line 268 "Parser.y"
                                     {var node = new MulNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -757,7 +754,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 68: // exp5 -> exp5, bitop, exp6
-#line 279 "Parser.y"
+#line 276 "Parser.y"
                        {var node = new BitNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -767,7 +764,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 69: // exp5 -> OpenPar, exp, ClosePar, bitop, exp6
-#line 285 "Parser.y"
+#line 282 "Parser.y"
                                      {var node = new BitNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -777,7 +774,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 70: // exp5 -> exp5, bitop, OpenPar, exp, ClosePar
-#line 291 "Parser.y"
+#line 288 "Parser.y"
                                       {var node = new BitNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -787,7 +784,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 71: // exp5 -> OpenPar, exp, ClosePar, bitop, OpenPar, exp, ClosePar
-#line 297 "Parser.y"
+#line 294 "Parser.y"
                                                       {var node = new BitNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -797,7 +794,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 73: // exp6 -> unary, exp6
-#line 305 "Parser.y"
+#line 302 "Parser.y"
                    {var node = new UnaryNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -806,7 +803,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 74: // exp6 -> unary, OpenPar, exp, ClosePar
-#line 310 "Parser.y"
+#line 307 "Parser.y"
                               {var node = new UnaryNode(); 
 					node.line=Compiler.line;
 				    if(Compiler.stackTree.Count>0) node.left = Compiler.stackTree.Pop();
@@ -815,7 +812,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 76: // term -> Ident
-#line 317 "Parser.y"
+#line 314 "Parser.y"
             {var node = new IdentNode();
 			node.line=Compiler.line;
 			node.ident = ValueStack[ValueStack.Depth-1].val;
@@ -823,7 +820,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 77: // term -> RealNumber
-#line 321 "Parser.y"
+#line 318 "Parser.y"
               {var node = new DoubleNode();	
 					node.line=Compiler.line;
 					node.value=Double.Parse(ValueStack[ValueStack.Depth-1].val,System.Globalization.CultureInfo.InvariantCulture);
@@ -831,7 +828,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 78: // term -> IntNumber
-#line 325 "Parser.y"
+#line 322 "Parser.y"
              {var node = new IntNode();
 					node.line=Compiler.line;
 					node.value=Int32.Parse(ValueStack[ValueStack.Depth-1].val);
@@ -839,7 +836,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 79: // term -> True
-#line 329 "Parser.y"
+#line 326 "Parser.y"
         {var node = new BoolNode();
 					node.line=Compiler.line;
 					node.value=true;
@@ -847,7 +844,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 80: // term -> False
-#line 333 "Parser.y"
+#line 330 "Parser.y"
          {var node = new BoolNode();
 					node.line=Compiler.line;
 					node.value=false;
@@ -855,97 +852,97 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
 #line default
         break;
       case 81: // addop -> Plus
-#line 338 "Parser.y"
+#line 335 "Parser.y"
              {CurrentSemanticValue.type="+";}
 #line default
         break;
       case 82: // addop -> Minus
-#line 339 "Parser.y"
+#line 336 "Parser.y"
           {CurrentSemanticValue.type="-";}
 #line default
         break;
       case 83: // mulop -> Multiply
-#line 341 "Parser.y"
+#line 338 "Parser.y"
                  {CurrentSemanticValue.type="*";}
 #line default
         break;
       case 84: // mulop -> Divide
-#line 343 "Parser.y"
+#line 340 "Parser.y"
           {CurrentSemanticValue.type="/";}
 #line default
         break;
       case 85: // bitop -> BitOr
-#line 344 "Parser.y"
+#line 341 "Parser.y"
              {CurrentSemanticValue.type="||";}
 #line default
         break;
       case 86: // bitop -> BitAnd
-#line 345 "Parser.y"
+#line 342 "Parser.y"
             {CurrentSemanticValue.type="&&";}
 #line default
         break;
       case 87: // unary -> Minus
-#line 347 "Parser.y"
+#line 344 "Parser.y"
               {CurrentSemanticValue.type="-";}
 #line default
         break;
       case 88: // unary -> BitNegation
-#line 348 "Parser.y"
+#line 345 "Parser.y"
                 {CurrentSemanticValue.type="~";}
 #line default
         break;
       case 89: // unary -> Negation
-#line 349 "Parser.y"
+#line 346 "Parser.y"
              {CurrentSemanticValue.type="!";}
 #line default
         break;
       case 90: // unary -> IntConv
-#line 350 "Parser.y"
+#line 347 "Parser.y"
             {CurrentSemanticValue.type="(int)";}
 #line default
         break;
       case 91: // unary -> DoubleConv
-#line 351 "Parser.y"
+#line 348 "Parser.y"
                {CurrentSemanticValue.type="(double)";}
 #line default
         break;
       case 92: // logicop -> Or
-#line 353 "Parser.y"
+#line 350 "Parser.y"
              {CurrentSemanticValue.type="||";}
 #line default
         break;
       case 93: // logicop -> And
-#line 354 "Parser.y"
+#line 351 "Parser.y"
         {CurrentSemanticValue.type="&&";}
 #line default
         break;
       case 94: // relatiop -> Equal
-#line 356 "Parser.y"
+#line 353 "Parser.y"
                  {CurrentSemanticValue.type="==";}
 #line default
         break;
       case 95: // relatiop -> NotEqual
-#line 357 "Parser.y"
+#line 354 "Parser.y"
              {CurrentSemanticValue.type="!=";}
 #line default
         break;
       case 96: // relatiop -> Greater
-#line 358 "Parser.y"
+#line 355 "Parser.y"
            {CurrentSemanticValue.type=">";}
 #line default
         break;
       case 97: // relatiop -> Smaller
-#line 359 "Parser.y"
+#line 356 "Parser.y"
             {CurrentSemanticValue.type="<";}
 #line default
         break;
       case 98: // relatiop -> GreaterOrEqual
-#line 360 "Parser.y"
+#line 357 "Parser.y"
                   {CurrentSemanticValue.type=">=";}
 #line default
         break;
       case 99: // relatiop -> SmallerOrEqual
-#line 361 "Parser.y"
+#line 358 "Parser.y"
                    {CurrentSemanticValue.type="<=";}
 #line default
         break;
@@ -963,7 +960,7 @@ public class Parser: ShiftReduceParser<ValueType, LexLocation>
         return CharToString((char)terminal);
   }
 
-#line 365 "Parser.y"
+#line 362 "Parser.y"
 
 public Parser(Scanner scanner) : base(scanner) { }
 #line default
