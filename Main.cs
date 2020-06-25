@@ -7,6 +7,13 @@ using System.Threading;
 using SymTab;
 using QUT.Gppg;
 
+public enum Type
+{
+    String, Int, Double, Bool, Plus, Minus, Times, Divide, Declaration, BitOr, BitAnd, UnMinus, BitNeg, Neg, IntConv, DoubleConv, Or, And, Equal,
+    NotEqual, Greater, Smaller, SmallerOrEq, GreaterOrEq, Main, Error, Return
+}
+
+
 public class Compiler
 {
 
@@ -125,6 +132,110 @@ public class Compiler
         EmitCode("}");
         EmitCode("EndMain: ret");
         EmitCode("}");
+    }
+    \ Declaration, BitOr, BitAnd,Or, And, Equal,
+    NotEqual, Greater, Smaller, SmallerOrEq, Main, Error, Return
+
+    public Type GetValType(string s)
+    {
+        switch (s)
+        {
+            case "string":
+                return Type.String;
+            case "int":
+                return Type.Int;
+            case "double":
+                return Type.Double;
+            case "bool":
+                return Type.Bool;
+        }
+
+        return Type.Error;
+    }
+
+    public Type GetMulType(string s)
+    {
+        switch (s)
+        {
+            case "*":
+                return Type.Times;
+            case "/":
+                return Type.Divide;
+        }
+
+        return Type.Error;
+    }
+
+    public Type GetAddType(string s)
+    {
+        switch (s)
+        {
+            case "+":
+                return Type.Plus;
+            case "-":
+                return Type.Minus;
+        }
+
+        return Type.Error;
+    }
+
+    public Type GetUnaryType(string s)
+    {
+        switch (s)
+        {
+            case "-":
+                return Type.UnMinus;
+            case "~":
+                return Type.BitNeg;
+            case "!":
+                return Type.Neg;
+            case "(int)":
+                return Type.IntConv;
+            case "(double)":
+                return Type.DoubleConv;
+        }
+        return Type.Error;
+    }
+    public Type GetBitType(string s)
+    {
+        switch (s)
+        {
+            case "|":
+                return Type.BitAnd;
+            case "&":
+                return Type.BitOr;
+        }
+        return Type.Error;
+    }
+    public Type GetLogicType(string s)
+    {
+        switch (s)
+        {
+            case "||":
+                return Type.Or;
+            case "&&":
+                return Type.And;
+        }
+        return Type.Error;
+    }
+    public Type GetRelationType(string s)
+    {
+        switch (s)
+        {
+            case "==":
+                return Type.Equal;
+            case "!=":
+                return Type.NotEqual;
+            case ">":
+                return Type.Greater;
+            case "<":
+                return Type.Smaller;
+            case "<=":
+                return Type.SmallerOrEq;
+            case ">=":
+                return Type.GreaterOrEq;
+        }
+        return Type.Error;
     }
 }
 
@@ -270,13 +381,22 @@ public class LogicNode : StructTree
     }
     public override void GenCode()
     {
+        int et = Compiler.etNumber; Compiler.etNumber++;
         if (left != null) left.GenCode();
+        Compiler.EmitCode("dup");
+        if (type == "&&")
+            Compiler.EmitCode($"brfalse et{et}");
+        if (type == "||")
+            Compiler.EmitCode($"brtrue et{et}");   
+
         if (right != null) right.GenCode();
 
         if (type == "&&")
             Compiler.EmitCode("and");
         if (type == "||")
             Compiler.EmitCode("or");
+
+        Compiler.EmitCode($"et{et}: nop");
     }
 }
 
@@ -318,8 +438,15 @@ public class RelationNode : StructTree
     }
     public override void GenCode()
     {
-        if (right != null) right.GenCode();
-        if (left != null) left.GenCode();
+        string rightT = right.CheckType();
+        string leftT = left.CheckType();
+
+        right.GenCode();
+        if (leftT == "double" && rightT != "double")
+            Compiler.EmitCode("conv.r8");
+        left.GenCode();
+        if (leftT != "double" && rightT == "double")
+            Compiler.EmitCode("conv.r8");
 
         if (type == "==")
             Compiler.EmitCode("ceq");
@@ -677,7 +804,7 @@ public class ReadNode : StructTree
         if (Compiler.variables[value] == "int")
             Compiler.EmitCode(" call  int32 [mscorlib]System.Int32::Parse(string)");
         if (Compiler.variables[value] == "bool")
-            Compiler.EmitCode(" call bool [mscorlib]System.Bool" +
+            Compiler.EmitCode(" call bool [mscorlib]System.Boolean" +
                 "::Parse(string)");
 
         Compiler.EmitCode($"stloc _{value}");
@@ -741,6 +868,11 @@ public class IfNode : StructTree
     }
     public override void GenCode()
     {
+        int et1=Compiler.etNumber; Compiler.etNumber++;
+        if (left != null) left.GenCode();
+        Compiler.EmitCode($"brfalse et{et1}");
+        if (right != null) right.GenCode();
+        Compiler.EmitCode($"et{et1}: nop");
     }
 }
 
@@ -766,6 +898,16 @@ public class IfElseNode : StructTree
     public StructTree elseNode;
     public override void GenCode()
     {
+        int et1 = Compiler.etNumber; Compiler.etNumber++;
+        int et2 = Compiler.etNumber; Compiler.etNumber++;
+        if (left != null) left.GenCode();
+        Compiler.EmitCode($"brfalse et{et1}");
+        if (right != null) right.GenCode();
+        Compiler.EmitCode($"br et{et2}");
+        Compiler.EmitCode($"et{et1}: nop");
+        if (elseNode != null) elseNode.GenCode();
+        Compiler.EmitCode($"et{et2}: nop");
+
     }
 }
 
@@ -778,5 +920,6 @@ public class ReturnNode : StructTree
     }
     public override void GenCode()
     {
+        Compiler.EmitCode($"leave EndMain");
     }
 }

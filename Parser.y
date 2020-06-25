@@ -4,7 +4,6 @@
 {
 public string  val;
 public int i_val;
-public double  d_val;
 public string  type;
 }
 
@@ -30,7 +29,7 @@ if: If  OpenPar exp ClosePar ifbody { var nodeI = new IfNode();
 				    if(Compiler.stackTree.Count>0) nodeI.left = Compiler.stackTree.Pop();
 				    Compiler.stackTree.Push(nodeI);};
 
-semicol: SemiCol {
+semicol : SemiCol {
 					Compiler.line=$1;};
 
 ifbody: OpenBracket main CloseBracket 
@@ -154,7 +153,7 @@ declare : vtype Ident semicol {var node = new DeclarationNode();
 						  if(Compiler.variables.ContainsKey($2)) 
 						  {	
 							string s=$2;
-							Console.WriteLine("Semantic error. Variable {0} already declared.",s);
+							Console.WriteLine("Semantic error. Variable {0} already declared. Error in line {1}",s,Compiler.line);
 							++Compiler.errors;
 						  }
 						  else
@@ -338,8 +337,8 @@ addop: Plus  {$$="+";}
 mulop: Multiply  {$$="*";}
 	
 	| Divide {$$="/";};
-bitop: BitOr {$$="||";}
-	| BitAnd   {$$="&&";} ;
+bitop: BitOr {$$="|";}
+	| BitAnd   {$$="&";} ;
 
 unary: Minus  {$$="-";}
 	| BitNegation  {$$="~";}
