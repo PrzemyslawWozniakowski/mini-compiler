@@ -4,13 +4,12 @@ using System.IO;
 using System.Collections.Generic;
 using GardensPoint;
 using System.Threading;
-using SymTab;
 using QUT.Gppg;
 
 public enum Type
 {
-    String, Int, Double, Bool, Plus, Minus, Times, Divide, Declaration, BitOr, BitAnd, UnMinus, BitNeg, Neg, IntConv, DoubleConv, Or, And, Equal,
-    NotEqual, Greater, Smaller, SmallerOrEq, GreaterOrEq, Main, Error, Return
+    Default, String, Int, Double, Bool, Plus, Minus, Multiply, Divide, Declaration, BitOr, BitAnd, UnaryMinus, BitNegation, Negation, IntConversion, DoubleConversion, Or, And, Equal,
+    NotEqual, Greater, Smaller, SmallerOrEqual, GreaterOrEqual, Main, Error, Return, If, Else, While, Read, Write, Assign, Ident, AssignMid, StandaloneExp
 }
 
 
@@ -22,7 +21,7 @@ public class Compiler
     public static int etNumber = 1;
     public static List<string> source;
     public static StructTree tree;
-    public static Dictionary<string, string> variables = new Dictionary<string, string>();
+    public static Dictionary<string, Type> variables = new Dictionary<string, Type>();
     public static Stack<StructTree> stackTree = new Stack<StructTree>();
     // arg[0] określa plik źródłowy
     // pozostałe argumenty są ignorowane
@@ -31,7 +30,7 @@ public class Compiler
 
         string file = "";
         FileStream source;
-        Console.WriteLine("\nSingle-Pass CIL Code Generator for Multiline Calculator - Gardens Point");
+        Console.WriteLine("\n Mini Language compilator");
         if (args.Length >= 1)
             file = args[0];
         else
@@ -133,15 +132,11 @@ public class Compiler
         EmitCode("EndMain: ret");
         EmitCode("}");
     }
-    \ Declaration, BitOr, BitAnd,Or, And, Equal,
-    NotEqual, Greater, Smaller, SmallerOrEq, Main, Error, Return
 
-    public Type GetValType(string s)
+    public static Type GetValType(string s)
     {
         switch (s)
         {
-            case "string":
-                return Type.String;
             case "int":
                 return Type.Int;
             case "double":
@@ -153,12 +148,12 @@ public class Compiler
         return Type.Error;
     }
 
-    public Type GetMulType(string s)
+    public static Type GetMulType(string s)
     {
         switch (s)
         {
             case "*":
-                return Type.Times;
+                return Type.Multiply;
             case "/":
                 return Type.Divide;
         }
@@ -166,7 +161,7 @@ public class Compiler
         return Type.Error;
     }
 
-    public Type GetAddType(string s)
+    public static Type GetAddType(string s)
     {
         switch (s)
         {
@@ -179,35 +174,35 @@ public class Compiler
         return Type.Error;
     }
 
-    public Type GetUnaryType(string s)
+    public static Type GetUnaryType(string s)
     {
         switch (s)
         {
             case "-":
-                return Type.UnMinus;
+                return Type.UnaryMinus;
             case "~":
-                return Type.BitNeg;
+                return Type.BitNegation;
             case "!":
-                return Type.Neg;
+                return Type.Negation;
             case "(int)":
-                return Type.IntConv;
+                return Type.IntConversion;
             case "(double)":
-                return Type.DoubleConv;
+                return Type.DoubleConversion;
         }
         return Type.Error;
     }
-    public Type GetBitType(string s)
+    public static Type GetBitType(string s)
     {
         switch (s)
         {
             case "|":
-                return Type.BitAnd;
-            case "&":
                 return Type.BitOr;
+            case "&":
+                return Type.BitAnd;
         }
         return Type.Error;
     }
-    public Type GetLogicType(string s)
+    public static Type GetLogicType(string s)
     {
         switch (s)
         {
@@ -218,7 +213,7 @@ public class Compiler
         }
         return Type.Error;
     }
-    public Type GetRelationType(string s)
+    public static Type GetRelationType(string s)
     {
         switch (s)
         {
@@ -231,9 +226,9 @@ public class Compiler
             case "<":
                 return Type.Smaller;
             case "<=":
-                return Type.SmallerOrEq;
+                return Type.SmallerOrEqual;
             case ">=":
-                return Type.GreaterOrEq;
+                return Type.GreaterOrEqual;
         }
         return Type.Error;
     }
@@ -241,9 +236,9 @@ public class Compiler
 
 public abstract class StructTree
 {
-    public string type;
+    public Type type;
     public int line = -1;
-    public abstract string CheckType();
+    public abstract Type CheckType();
     public abstract void GenCode();
     public StructTree left = null;
     public StructTree right = null;
@@ -252,13 +247,14 @@ public abstract class StructTree
 
 public class MainNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string type1 = "", type2 = "";
+        Type type1 = Type.Default, type2 =Type.Default;
         if (left != null) type1 = left.CheckType();
+        if (type1 == Type.Error) Console.WriteLine($" Error in line {line} \n");
         if (right != null) type2 = right.CheckType();
-        if (type1 == "error" || type2 == "error") Console.WriteLine($" Error in line {line}");
-        return "";
+        if (type2 == Type.Error) Console.WriteLine($" Error in line {line} \n");
+        return type;
     }
 
     public override void GenCode()
@@ -271,18 +267,18 @@ public class MainNode : StructTree
 
 public class DeclarationNode : StructTree
 {
-    public override string CheckType() { return ""; }
-    public string varType;
+    public override Type CheckType() { return type; }
+    public Type varType;
     public string ident;
     public bool isValid() { return Compiler.variables.ContainsKey(ident); }
     public override void GenCode()
     {
         string s = ".locals init ";
-        if (varType == "int")
+        if (varType == Type.Int)
             s = s + "( int32 ";
-        if (varType == "double")
+        if (varType == Type.Double)
             s = s + "( float64 ";
-        if (varType == "bool")
+        if (varType == Type.Bool)
             s = s + "( bool ";
 
         s = s + $"_{ident} )";
@@ -290,11 +286,11 @@ public class DeclarationNode : StructTree
         Compiler.EmitCode(s);
 
         s = $"ldc.";
-        if (varType == "int")
+        if (varType == Type.Int)
             s = s + $"i4 0";
-        if (varType == "double")
+        if (varType == Type.Double)
             s = s + $"r8 0.0";
-        if (varType == "bool")
+        if (varType == Type.Bool)
             s = s + "i4.0";
 
         Compiler.EmitCode(s);
@@ -307,39 +303,39 @@ public class DeclarationNode : StructTree
 
 public class AssignNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string typeL = left.CheckType();
-        if (typeL == "error") return "error";
+        Type typeL = left.CheckType();
+        if (typeL == Type.Error) return Type.Error;
 
         if (!Compiler.variables.ContainsKey(ident))
         {
             Console.Write($"Semantic error. Variable {ident} undeclared.");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
         }
-        if (Compiler.variables[ident] == "bool" && typeL != "bool")
+        if (Compiler.variables[ident] == Type.Bool && typeL !=Type.Bool)
         {
-            Console.Write($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.Write($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
-            return "error";
-
-        }
-
-        if (Compiler.variables[ident] == "int" && typeL != "int")
-        {
-            Console.Write($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
-            Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
 
-
-        if (Compiler.variables[ident] == "double" && typeL == "bool")
+        if (Compiler.variables[ident] == Type.Int && typeL != Type.Int)
         {
-            Console.Write($"Semantic error. Value {typeL} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.Write($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
+
+        }
+
+
+        if (Compiler.variables[ident] == Type.Double && typeL == Type.Bool)
+        {
+            Console.Write($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Compiler.errors++;
+            return Type.Error;
 
         }
         return Compiler.variables[ident];
@@ -349,7 +345,7 @@ public class AssignNode : StructTree
     {
         if (left != null) left.GenCode();
         if (right != null) right.GenCode();
-        if (left.CheckType() == "double") Compiler.EmitCode("conv.i4");
+        if (left.CheckType() == Type.Int && Compiler.variables[ident] == Type.Double) Compiler.EmitCode("conv.r8");
         string s = $"stloc _{ident}";
         Compiler.EmitCode(s);
     }
@@ -357,43 +353,41 @@ public class AssignNode : StructTree
 
 public class LogicNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string type1 = left.CheckType();
-        string type2 = right.CheckType();
-        if (type1 == "error" || type2 == "error") return "error";
+        Type type1 = left.CheckType();
+        Type type2 = right.CheckType();
+        if (type1 == Type.Error || type2 == Type.Error) return Type.Error;
 
-        if (type1 != "bool")
+        if (type1 != Type.Bool)
         {
-            Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type1}");
+            Console.Write($"Semantic error. Logic operation {type.ToString()} cannot be applied to {type1.ToString()}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
-        if (type2 != "bool")
+        if (type2 != Type.Bool)
         {
-            Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type2}");
+            Console.Write($"Semantic error. Logic operation {type.ToString()} cannot be applied to {type2.ToString()}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
-        return "bool";
+        return Type.Bool;
     }
     public override void GenCode()
     {
         int et = Compiler.etNumber; Compiler.etNumber++;
         if (left != null) left.GenCode();
         Compiler.EmitCode("dup");
-        if (type == "&&")
+        if (type == Type.And)
             Compiler.EmitCode($"brfalse et{et}");
-        if (type == "||")
-            Compiler.EmitCode($"brtrue et{et}");   
-
+        if (type == Type.Or)
+            Compiler.EmitCode($"brtrue et{et}");
         if (right != null) right.GenCode();
-
-        if (type == "&&")
+        if (type == Type.And)
             Compiler.EmitCode("and");
-        if (type == "||")
+        if (type == Type.Or)
             Compiler.EmitCode("or");
 
         Compiler.EmitCode($"et{et}: nop");
@@ -402,69 +396,69 @@ public class LogicNode : StructTree
 
 public class RelationNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string type1 = left.CheckType();
-        string type2 = right.CheckType();
-        if (type1 == "error" || type2 == "error") return "error";
-        if (type == ">" || type == "<" || type == "<=" || type == ">=")
+        Type type1 = left.CheckType();
+        Type type2 = right.CheckType();
+        if (type1 == Type.Error || type2 == Type.Error) return Type.Error;
+        if (type == Type.Greater || type == Type.Smaller || type == Type.SmallerOrEqual || type == Type.GreaterOrEqual)
         {
-            if (type1 == "bool")
+            if (type1 == Type.Bool)
             {
-                Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type1}");
+                Console.Write($"Semantic error. Logic operation {type.ToString()} cannot be applied to {type1.ToString()}");
                 Compiler.errors++;
-                return "error";
+                return Type.Error;
 
             }
-            if (type2 == "bool")
+            if (type2 == Type.Bool)
             {
                 Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type2}");
                 Compiler.errors++;
-                return "error";
+                return Type.Error;
             }
         }
-        if (type == "==" || type == "!=")
+        if (type == Type .Equal|| type == Type.NotEqual)
         {
-            if ((type1 == "bool" && type2 != "bool") || (type2 == "bool" && type1 != "bool"))
+            if ((type1 == Type.Bool && type2 != Type.Bool) || (type2 == Type.Bool && type1 != Type.Bool))
             {
                 Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type1} and {type2}");
                 Compiler.errors++;
-                return "error";
+                return Type.Error;
 
             }
         }
 
-        return "bool";
+        return Type.Bool;
     }
     public override void GenCode()
     {
-        string rightT = right.CheckType();
-        string leftT = left.CheckType();
+        Type rightT = right.CheckType();
+        Type leftT = left.CheckType();
 
-        right.GenCode();
-        if (leftT == "double" && rightT != "double")
+        if (left != null) left.GenCode();
+        if (leftT == Type.Double && rightT != Type.Double)
             Compiler.EmitCode("conv.r8");
-        left.GenCode();
-        if (leftT != "double" && rightT == "double")
+        if (right != null) right.GenCode();
+        if (leftT != Type.Double && rightT == Type.Double)
             Compiler.EmitCode("conv.r8");
 
-        if (type == "==")
+        if (type == Type.Equal)
             Compiler.EmitCode("ceq");
-        if (type == "!=")
+        if (type == Type.NotEqual)
         {
             Compiler.EmitCode("ceq");
             Compiler.EmitCode("not");
         }
-        if (type == ">")
+        if (type == Type.Greater)
             Compiler.EmitCode("cgt");
-        if (type == "<=")
+        if (type == Type.SmallerOrEqual)
         {
             Compiler.EmitCode("cgt");
             Compiler.EmitCode("not");
         }
-        if (type == "<")
+        if (type == Type.Smaller)
             Compiler.EmitCode("clt");
-        if (type == ">=")
+        if (type == Type.GreaterOrEqual)
         {
             Compiler.EmitCode("clt");
             Compiler.EmitCode("not");
@@ -474,45 +468,46 @@ public class RelationNode : StructTree
 
 public class AddNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string type1 = left.CheckType();
-        string type2 = right.CheckType();
-        if (type1 == "error" || type2 == "error") return "error";
+        Type type1 = left.CheckType();
+        Type type2 = right.CheckType();
+        if (type1 == Type.Error || type2 == Type.Error) return Type.Error;
 
-        if (type1 == "bool")
+        if (type1 == Type.Bool)
         {
             Console.Write($"Semantic error. Add operation {type} cannot be applied to {type1}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
-        if (type2 == "bool")
+        if (type2 == Type.Bool)
         {
             Console.Write($"Semantic error. Add operation {type} cannot be applied to {type2}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
-        if (type1 == "int" && type1 == type2)
-            return "int";
+        if (type1 == Type.Int && type1 == type2)
+            return Type.Int;
 
-        return "double";
+        return Type.Double;
     }
     public override void GenCode()
     {
-        string rightT = right.CheckType();
-        string leftT = left.CheckType();
+        Type rightT = right.CheckType();
+        Type leftT = left.CheckType();
 
-        right.GenCode();
-        if (leftT == "double" && rightT != "double")
-            Compiler.EmitCode("conv.r8");
         left.GenCode();
-        if (leftT != "double" && rightT == "double")
+        if (leftT != Type.Double && rightT == Type.Double)
             Compiler.EmitCode("conv.r8");
+        right.GenCode();
+        if (leftT == Type.Double && rightT != Type.Double)
+            Compiler.EmitCode("conv.r8");
+
 
         string s;
-        if (type == "+")
+        if (type == Type.Plus)
             s = "add";
         else
             s = "sub";
@@ -522,44 +517,45 @@ public class AddNode : StructTree
 
 public class MulNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string type1 = left.CheckType();
-        string type2 = right.CheckType();
-        if (type1 == "error" || type2 == "error") return "error";
+        Type type1 = left.CheckType();
+        Type type2 = right.CheckType();
+        if (type1 == Type.Error || type2 == Type.Error) return Type.Error;
 
-        if (type1 == "bool")
+        if (type1 == Type.Bool)
         {
             Console.Write($"Semantic error. Multiply operation {type} cannot be applied to {type1}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
-        if (type2 == "bool")
+        if (type2 == Type.Bool)
         {
             Console.Write($"Semantic error. Multiply operation {type} cannot be applied to {type2}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
-        if (type1 == "int" && type1 == type2)
-            return "int";
+        if (type1 == Type.Int && type1 == type2)
+            return Type.Int;
 
-        return "double";
+        return Type.Double;
     }
     public override void GenCode()
     {
-        string rightT = right.CheckType();
-        string leftT = left.CheckType();
+        Type rightT = right.CheckType();
+        Type leftT = left.CheckType();
 
-        right.GenCode();
-        if (leftT == "double" && rightT != "double")
-            Compiler.EmitCode("conv.r8");
         left.GenCode();
-        if (leftT != "double" && rightT == "double")
+        if (leftT != Type.Double && rightT == Type.Double)
             Compiler.EmitCode("conv.r8");
+        right.GenCode();
+        if (leftT == Type.Double && rightT != Type.Double)
+            Compiler.EmitCode("conv.r8");
+
         string s;
-        if (type == "*")
+        if (type == Type.Multiply)
             s = "mul";
         else
             s = "div";
@@ -569,96 +565,96 @@ public class MulNode : StructTree
 
 public class BitNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string type1 = left.CheckType();
-        string type2 = right.CheckType();
-        if (type1 == "error" || type2 == "error") return "error";
+        Type type1 = left.CheckType();
+        Type type2 = right.CheckType();
+        if (type1 == Type.Error || type2 == Type.Error) return Type.Error;
 
-        if (type1 != "int")
+        if (type1 != Type.Int)
         {
             Console.Write($"Semantic error. Bit operation {type} cannot be applied to {type1}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
-        if (type2 != "int")
+        if (type2 != Type.Int)
         {
             Console.Write($"Semantic error. Bit operation {type} cannot be applied to {type2}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
-        return "int";
+        return Type.Int;
     }
     public override void GenCode()
     {
         if (left != null) left.GenCode();
-
-        if (type == "&")
+        if (right != null) right.GenCode();
+        if (type == Type.BitAnd)
             Compiler.EmitCode("and");
-        if (type == "|")
+        if (type == Type.BitOr)
             Compiler.EmitCode("or");
     }
 }
 
 public class UnaryNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string str = left.CheckType();
-        if (str == "error") return "error";
+        Type str = left.CheckType();
+        if (str == Type.Error) return Type.Error;
 
-        if (type == "-" && str != "double" && str != "int")
+        if (type == Type.UnaryMinus && str != Type.Double && str != Type.Int)
         {
             Compiler.errors++;
             Console.Write("Semantic error. Unary operator - can't be applied to bool value.");
-            return "error";
+            return Type.Error;
 
         }
-        if (type == "~" && str != "int")
+        if (type == Type.BitNegation && str != Type.Int)
         {
             Compiler.errors++;
-            Console.Write($"Semantic error. Unary operator ~ can't be applied to {str} value.");
-            return "error";
+            Console.Write($"Semantic error. Unary operator ~ can't be applied to {str.ToString()} value.");
+            return Type.Error;
 
         }
-        if (type == "!" && str != "bool")
+        if (type == Type.Negation && str != Type.Bool)
         {
             Compiler.errors++;
-            Console.Write($"Semontic error. Unary operator ! can't be applied to {str} value.");
-            return "error";
+            Console.Write($"Semontic error. Unary operator ! can't be applied to {str.ToString()} value.");
+            return Type.Error;
 
         }
-        if (type == "(int)")
-            str = "int";
-        if (type == "(double)")
-            str = "double";
+        if (type == Type.IntConversion)
+            str = Type.Int;
+        if (type == Type.DoubleConversion)
+            str = Type.Double;
         return str;
     }
     public override void GenCode()
     {
         left.GenCode();
         string s = "";
-        if (type == "-")
+        if (type == Type.UnaryMinus)
         {
             s = "neg";
             Compiler.EmitCode(s);
 
         }
-        if (type == "!" | type == "~")
+        if (type == Type.Negation | type == Type.BitNegation)
         {
             s = "not";
             Compiler.EmitCode(s);
 
         }
-        if (type == "(int)")
+        if (type == Type.IntConversion)
         {
             s = "conv.i4";
             Compiler.EmitCode(s);
 
         }
-        if (type == "(double)")
+        if (type == Type.DoubleConversion)
         {
             s = "conv.r8";
             Compiler.EmitCode(s);
@@ -668,14 +664,14 @@ public class UnaryNode : StructTree
 }
 public class IdentNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
         if (Compiler.variables.ContainsKey(ident))
             return Compiler.variables[ident];
 
         Console.Write($"Semantic error. Variable {ident} wasn't declared.");
         Compiler.errors++;
-        return "error";
+        return Type.Error;
 
     }
     public string ident;
@@ -687,7 +683,7 @@ public class IdentNode : StructTree
 
 public class IntNode : StructTree
 {
-    public override string CheckType() { return "int"; }
+    public override Type CheckType() { return Type.Int; }
     public int value;
     public override void GenCode()
     {
@@ -699,7 +695,7 @@ public class IntNode : StructTree
 
 public class DoubleNode : StructTree
 {
-    public override string CheckType() { return "double"; }
+    public override Type CheckType() { return Type.Double; }
     public double value;
     public override void GenCode()
     {
@@ -710,7 +706,7 @@ public class DoubleNode : StructTree
 
 public class BoolNode : StructTree
 {
-    public override string CheckType() { return "bool"; }
+    public override Type CheckType() { return Type.Bool; }
     public bool value;
     public override void GenCode()
     {
@@ -724,7 +720,7 @@ public class BoolNode : StructTree
 
 public class StringNode : StructTree
 {
-    public override string CheckType() { return "string"; }
+    public override Type CheckType() { return Type.String; }
     public string value;
     public override void GenCode()
     {
@@ -734,20 +730,20 @@ public class StringNode : StructTree
 
 public class WriteNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
         if (right != null) right.CheckType();
         if (left != null) left.CheckType();
-        return "";
+        return Type.Write;
     }
     public override void GenCode()
     {
-        string rightT = right.CheckType();
-        if (rightT != "string")
+        Type rightT = right.CheckType();
+        if (rightT != Type.String)
         {
-            if (rightT == "double")
+            if (rightT == Type.Double)
             {
-                Compiler.EmitCode(" call class [mscorlib]System.Globalization.CultureInfo [mscorlib]System.Globalization.CultureInfo::get_InvariantCulture()");
+                Compiler.EmitCode("call class [mscorlib]System.Globalization.CultureInfo [mscorlib]System.Globalization.CultureInfo::get_InvariantCulture()");
                 Compiler.EmitCode("ldstr \"{0:0.000000}\"");
             }
             else
@@ -756,56 +752,55 @@ public class WriteNode : StructTree
             }
             if (right != null) right.GenCode();
             if (left != null) left.GenCode();
-            if (right != null && rightT == "int")
+            if (right != null && rightT == Type.Int)
                 Compiler.EmitCode("box[mscorlib]System.Int32");
-            if (right != null && rightT == "double")
+            if (right != null && rightT == Type.Double)
                 Compiler.EmitCode("box[mscorlib]System.Double");
-            if (right != null && rightT == "bool")
+            if (right != null && rightT == Type.Bool)
                 Compiler.EmitCode("box[mscorlib]System.Boolean");
 
-            if (rightT == "double")
+            if (rightT == Type.Double)
             {
                 Compiler.EmitCode("call string [mscorlib]System.String::Format(class [mscorlib]System.IFormatProvider,string,object)");
-                Compiler.EmitCode("call void [mscorlib]System.Console::WriteLine(string)");
+                Compiler.EmitCode("call void [mscorlib]System.Console::Write(string)");
             }
             else
-                Compiler.EmitCode("call void [mscorlib]System.Console::WriteLine(string, object)");
+                Compiler.EmitCode("call void [mscorlib]System.Console::Write(string, object)");
         }
         else
         {
             if (right != null) right.GenCode();
             if (left != null) left.GenCode();
-            Compiler.EmitCode("call void [mscorlib]System.Console::WriteLine(string)");
+            Compiler.EmitCode("call void [mscorlib]System.Console::Write(string)");
         }
     }
 }
 
 public class ReadNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
         if (Compiler.variables.ContainsKey(value))
             return Compiler.variables[value];
 
         Console.Write($"Semantic error. Variable {value} wasn't declared.");
         Compiler.errors++;
-        return "error";
+        return Type.Error;
     }
     public string value;
     public override void GenCode()
     {
 
         Compiler.EmitCode("call string [mscorlib]System.Console::ReadLine()");
-        if (Compiler.variables[value] == "double")
+        if (Compiler.variables[value] == Type.Double)
         {
-            Compiler.EmitCode(" call  class [mscorlib]System.Globalization.CultureInfo [mscorlib]System.Globalization.CultureInfo::get_InvariantCulture()");
-            Compiler.EmitCode(" call  float64 [mscorlib]System.Double::Parse(string,class [mscorlib]System.IFormatProvider)");
+            Compiler.EmitCode("call  class [mscorlib]System.Globalization.CultureInfo [mscorlib]System.Globalization.CultureInfo::get_InvariantCulture()");
+            Compiler.EmitCode("call  float64 [mscorlib]System.Double::Parse(string,class [mscorlib]System.IFormatProvider)");
         }
-        if (Compiler.variables[value] == "int")
-            Compiler.EmitCode(" call  int32 [mscorlib]System.Int32::Parse(string)");
-        if (Compiler.variables[value] == "bool")
-            Compiler.EmitCode(" call bool [mscorlib]System.Boolean" +
-                "::Parse(string)");
+        if (Compiler.variables[value] == Type.Int)
+            Compiler.EmitCode("call  int32 [mscorlib]System.Int32::Parse(string)");
+        if (Compiler.variables[value] == Type.Bool)
+            Compiler.EmitCode("call bool [mscorlib]System.Boolean::Parse(string)");
 
         Compiler.EmitCode($"stloc _{value}");
     }
@@ -813,22 +808,22 @@ public class ReadNode : StructTree
 
 public class WhileNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
 
-        string type1 = left.CheckType();
-        if (type1 == "error") return "error";
+        Type type1 = left.CheckType();
+        if (type1 == Type.Error) return Type.Error;
 
-        if (type1 != "bool")
+        if (type1 != Type.Bool)
         {
-            Console.Write($"Semantic error. While condition cannot be of type {type1}");
+            Console.Write($"Semantic error. While condition cannot be of type {type1.ToString()}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
         if (right != null) right.CheckType();
 
-        return "";
+        return Type.While;
     }
     public string value;
     public override void GenCode()
@@ -850,21 +845,21 @@ public class WhileNode : StructTree
 
 public class IfNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string type1 = left.CheckType();
-        if (type1 == "error") return "error";
+        Type type1 = left.CheckType();
+        if (type1 == Type.Error) return Type.Error;
 
-        if (type1 != "bool")
+        if (type1 != Type.Bool)
         {
-            Console.Write($"If condition cannot be of type {type1}");
+            Console.Write($"If condition cannot be of type {type1.ToString()}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
         if (right != null) right.CheckType();
 
-        return "";
+        return Type.If;
     }
     public override void GenCode()
     {
@@ -879,21 +874,21 @@ public class IfNode : StructTree
 
 public class IfElseNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-        string type1 = left.CheckType();
-        if (type1 == "error") return "error";
+        Type type1 = left.CheckType();
+        if (type1 == Type.Error) return Type.Error;
 
-        if (type1 != "bool")
+        if (type1 != Type.Bool)
         {
-            Console.Write($"If condition cannot be of type {type1}");
+            Console.Write($"If condition cannot be of type {type1.ToString()}");
             Compiler.errors++;
-            return "error";
+            return Type.Error;
 
         }
         if (elseNode != null) elseNode.CheckType();
         if (right != null) right.CheckType();
-        return "";
+        return Type.If;
     }
     public StructTree elseNode;
     public override void GenCode()
@@ -913,13 +908,48 @@ public class IfElseNode : StructTree
 
 public class ReturnNode : StructTree
 {
-    public override string CheckType()
+    public override Type CheckType()
     {
-
-        return "";
+        return Type.Return;
     }
     public override void GenCode()
     {
         Compiler.EmitCode($"leave EndMain");
     }
+}
+
+public class AssignMidNode : AssignNode
+{
+    public override void GenCode()
+    {
+        if (left != null) left.GenCode();
+        if (right != null) right.GenCode();
+        if (left.CheckType() == Type.Int && Compiler.variables[ident]==Type.Double) Compiler.EmitCode("conv.r8");
+        string s = $"stloc _{ident}";
+        Compiler.EmitCode(s);
+        s = $"ldloc _{ident}";
+        Compiler.EmitCode(s);
+    }
+
+
+}
+
+public class StandaloneExpNode : StructTree
+{
+    public override Type CheckType()
+    {
+        Type type1 = Type.Default, type2 = Type.Default;
+        if (left != null) type1 = left.CheckType();
+        if (right != null) type2 = right.CheckType();
+        if (type1 == Type.Error || type2 == Type.Error) return Type.Error;
+        return type;
+    }
+    public override void GenCode()
+    {
+        if (left != null) left.GenCode();
+        if (right != null) right.GenCode();
+        Compiler.EmitCode("pop");
+    }
+
+
 }

@@ -19,6 +19,7 @@ Ident       {alpha}{alnum}*
 "(double)"    { return (int)Tokens.DoubleConv; }
 "(int)"       { return (int)Tokens.IntConv; }
 
+
 "write"       { return (int)Tokens.Write; }
 "program"     { return (int)Tokens.Program;}
 "if"	      { return (int)Tokens.If;}
@@ -32,9 +33,10 @@ Ident       {alpha}{alnum}*
 "false"       { return (int)Tokens.False;}
 "return"	  { return (int)Tokens.Return;}
 
+{Ident}       { yylval.val=yytext; return (int)Tokens.Ident; }
+
 {IntNumber}   { yylval.val=yytext; return (int)Tokens.IntNumber; }
 {RealNumber}  { yylval.val=yytext; return (int)Tokens.RealNumber; }
-{Ident}       { yylval.val=yytext; return (int)Tokens.Ident; }
 
 "&&"          { return (int)Tokens.And; }
 "&"           { return (int)Tokens.BitAnd; }
