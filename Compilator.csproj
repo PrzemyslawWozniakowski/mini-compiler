@@ -47,18 +47,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="example.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="example1.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Skaner.cs" />
-    <Compile Include="SymTab.cs" />
+    <Compile Include="Scanner.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="Parser.y" />
-    <None Include="Skaner.lex" />
+    <None Include="kompilator.y" />
+    <None Include="kompilator.lex" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>$(ProjectDir)GP/Gplex.exe /verbose /out:$(ProjectDir)Scanner.cs $(ProjectDir)kompilator.lex
+$(ProjectDir)GP/Gppg.exe /gplex /verbose /out:$(ProjectDir)Parser.cs $(ProjectDir)kompilator.y</PreBuildEvent>
+  </PropertyGroup>
 </Project>

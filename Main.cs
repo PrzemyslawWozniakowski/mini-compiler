@@ -9,7 +9,7 @@ using QUT.Gppg;
 public enum Type
 {
     Default, String, Int, Double, Bool, Plus, Minus, Multiply, Divide, Declaration, BitOr, BitAnd, UnaryMinus, BitNegation, Negation, IntConversion, DoubleConversion, Or, And, Equal,
-    NotEqual, Greater, Smaller, SmallerOrEqual, GreaterOrEqual, Main, Error, Return, If, Else, While, Read, Write, Assign, Ident, AssignMid, StandaloneExp
+    NotEqual, Greater, Smaller, SmallerOrEqual, GreaterOrEqual, Main, Error, Return, If, Else, While, Read, Write, Assign, Ident, AssignMid, StandaloneExp, BoolConst
 }
 
 
@@ -59,12 +59,11 @@ public class Compiler
         GenProlog();
         parser.Parse();
 
-        StructTree currentnode = tree;
-        if (errors == 0)
+        if (errors == 0 && tree != null)
         {
-            CheckTypeTree(currentnode);
+            CheckTypeTree(tree);
         }
-        if (errors == 0)
+        if (errors == 0 && tree != null)
         {
             GenCode(tree);
         }
@@ -78,7 +77,6 @@ public class Compiler
             Console.WriteLine($"\n  {errors} errors detected\n");
             File.Delete(file + ".il");
         }
-        Thread.Sleep(4000);
         return errors == 0 ? 0 : 2;
     }
 
@@ -113,7 +111,7 @@ public class Compiler
         EmitCode(".entrypoint");
         EmitCode(".try");
         EmitCode("{");
-        EmitCode(" .maxstack 8");
+        EmitCode(" .maxstack 64");
         EmitCode();
 
         EmitCode();
@@ -247,13 +245,23 @@ public abstract class StructTree
 
 public class MainNode : StructTree
 {
+    public MainNode(bool isLeaf = false)
+    {
+        type = Type.Main;
+        line = Compiler.line;
+        if (!isLeaf)
+        {
+            if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+            if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+        }
+    }
     public override Type CheckType()
     {
-        Type type1 = Type.Default, type2 =Type.Default;
+        Type type1 = Type.Default, type2 = Type.Default;
         if (left != null) type1 = left.CheckType();
         if (type1 == Type.Error) Console.WriteLine($" Error in line {line} \n");
         if (right != null) type2 = right.CheckType();
-        if (type2 == Type.Error) Console.WriteLine($" Error in line {line} \n");
+        if (type2 == Type.Error) Console.WriteLine($" Error in line {line} \n   ");
         return type;
     }
 
@@ -267,6 +275,11 @@ public class MainNode : StructTree
 
 public class DeclarationNode : StructTree
 {
+    public DeclarationNode()
+    {
+       type = Type.Int;
+       line = Compiler.line;
+    }
     public override Type CheckType() { return type; }
     public Type varType;
     public string ident;
@@ -303,6 +316,13 @@ public class DeclarationNode : StructTree
 
 public class AssignNode : StructTree
 {
+    public AssignNode(string _ident)
+    {
+        type = Type.Assign;
+        line = Compiler.line;
+        ident = _ident;
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type typeL = left.CheckType();
@@ -310,11 +330,11 @@ public class AssignNode : StructTree
 
         if (!Compiler.variables.ContainsKey(ident))
         {
-            Console.Write($"Semantic error. Variable {ident} undeclared.");
+            Console.Write($"Semantic error. Variable {ident} undeclared. ");
             Compiler.errors++;
             return Type.Error;
         }
-        if (Compiler.variables[ident] == Type.Bool && typeL !=Type.Bool)
+        if (Compiler.variables[ident] == Type.Bool && typeL != Type.Bool)
         {
             Console.Write($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
@@ -346,13 +366,18 @@ public class AssignNode : StructTree
         if (left != null) left.GenCode();
         if (right != null) right.GenCode();
         if (left.CheckType() == Type.Int && Compiler.variables[ident] == Type.Double) Compiler.EmitCode("conv.r8");
-        string s = $"stloc _{ident}";
-        Compiler.EmitCode(s);
+        Compiler.EmitCode($"stloc _{ident}");
     }
 }
 
 public class LogicNode : StructTree
 {
+    public LogicNode()
+    {
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type type1 = left.CheckType();
@@ -396,6 +421,12 @@ public class LogicNode : StructTree
 
 public class RelationNode : StructTree
 {
+    public RelationNode()
+    {
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type type1 = left.CheckType();
@@ -417,7 +448,7 @@ public class RelationNode : StructTree
                 return Type.Error;
             }
         }
-        if (type == Type .Equal|| type == Type.NotEqual)
+        if (type == Type.Equal || type == Type.NotEqual)
         {
             if ((type1 == Type.Bool && type2 != Type.Bool) || (type2 == Type.Bool && type1 != Type.Bool))
             {
@@ -436,10 +467,10 @@ public class RelationNode : StructTree
         Type leftT = left.CheckType();
 
         if (left != null) left.GenCode();
-        if (leftT == Type.Double && rightT != Type.Double)
+        if (leftT != Type.Double && rightT == Type.Double)
             Compiler.EmitCode("conv.r8");
         if (right != null) right.GenCode();
-        if (leftT != Type.Double && rightT == Type.Double)
+        if (leftT == Type.Double && rightT != Type.Double)
             Compiler.EmitCode("conv.r8");
 
         if (type == Type.Equal)
@@ -447,27 +478,36 @@ public class RelationNode : StructTree
         if (type == Type.NotEqual)
         {
             Compiler.EmitCode("ceq");
-            Compiler.EmitCode("not");
+            Compiler.EmitCode("ldc.i4.0");
+            Compiler.EmitCode("ceq");
         }
         if (type == Type.Greater)
             Compiler.EmitCode("cgt");
         if (type == Type.SmallerOrEqual)
         {
             Compiler.EmitCode("cgt");
-            Compiler.EmitCode("not");
+            Compiler.EmitCode("ldc.i4.0");
+            Compiler.EmitCode("ceq");
         }
         if (type == Type.Smaller)
             Compiler.EmitCode("clt");
         if (type == Type.GreaterOrEqual)
         {
             Compiler.EmitCode("clt");
-            Compiler.EmitCode("not");
+            Compiler.EmitCode("ldc.i4.0");
+            Compiler.EmitCode("ceq");
         }
     }
 }
 
 public class AddNode : StructTree
 {
+    public AddNode()
+    {
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type type1 = left.CheckType();
@@ -517,6 +557,12 @@ public class AddNode : StructTree
 
 public class MulNode : StructTree
 {
+    public MulNode()
+    {
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type type1 = left.CheckType();
@@ -554,17 +600,21 @@ public class MulNode : StructTree
         if (leftT == Type.Double && rightT != Type.Double)
             Compiler.EmitCode("conv.r8");
 
-        string s;
         if (type == Type.Multiply)
-            s = "mul";
+            Compiler.EmitCode("mul");
         else
-            s = "div";
-        Compiler.EmitCode(s);
+            Compiler.EmitCode("div");
     }
 }
 
 public class BitNode : StructTree
 {
+    public BitNode()
+    {
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type type1 = left.CheckType();
@@ -600,6 +650,11 @@ public class BitNode : StructTree
 
 public class UnaryNode : StructTree
 {
+    public UnaryNode()
+    {
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type str = left.CheckType();
@@ -634,36 +689,41 @@ public class UnaryNode : StructTree
     }
     public override void GenCode()
     {
+        Type leftT = left.CheckType();
         left.GenCode();
-        string s = "";
         if (type == Type.UnaryMinus)
         {
-            s = "neg";
-            Compiler.EmitCode(s);
+            Compiler.EmitCode("neg");
 
         }
-        if (type == Type.Negation | type == Type.BitNegation)
+        if (type == Type.BitNegation)
         {
-            s = "not";
-            Compiler.EmitCode(s);
+            Compiler.EmitCode("not");
 
+        }
+        if (type == Type.Negation)
+        {
+            Compiler.EmitCode("ldc.i4.0");
+            Compiler.EmitCode("ceq");
         }
         if (type == Type.IntConversion)
         {
-            s = "conv.i4";
-            Compiler.EmitCode(s);
+            Compiler.EmitCode("conv.i4");
 
         }
         if (type == Type.DoubleConversion)
         {
-            s = "conv.r8";
-            Compiler.EmitCode(s);
-
+            Compiler.EmitCode("conv.r8");
         }
     }
 }
 public class IdentNode : StructTree
 {
+    public IdentNode()
+    {
+        type = Type.Ident;
+        line = Compiler.line;
+    }
     public override Type CheckType()
     {
         if (Compiler.variables.ContainsKey(ident))
@@ -683,6 +743,11 @@ public class IdentNode : StructTree
 
 public class IntNode : StructTree
 {
+    public IntNode()
+    {
+       type = Type.Int;
+       line = Compiler.line;
+    }
     public override Type CheckType() { return Type.Int; }
     public int value;
     public override void GenCode()
@@ -695,31 +760,51 @@ public class IntNode : StructTree
 
 public class DoubleNode : StructTree
 {
+    public DoubleNode()
+    {
+        type = Type.Double;
+        line = Compiler.line;
+    }
     public override Type CheckType() { return Type.Double; }
     public double value;
     public override void GenCode()
     {
-        string s = string.Format(System.Globalization.CultureInfo.InvariantCulture, "ldc.r8 {0}", value);
+        string s = string.Format(System.Globalization.CultureInfo.InvariantCulture, "ldc.r8 {0:0.00000000}", value);
         Compiler.EmitCode(s);
     }
 }
 
 public class BoolNode : StructTree
 {
+    public BoolNode()
+    {
+        type = Type.Bool;
+        line = Compiler.line;
+    }
     public override Type CheckType() { return Type.Bool; }
     public bool value;
     public override void GenCode()
     {
         if (value)
+        {
             Compiler.EmitCode("ldc.i4 1");
+        }
         else
+        {
             Compiler.EmitCode("ldc.i4 0");
+        }
     }
 }
 
 
 public class StringNode : StructTree
 {
+    public StringNode(string val)
+    {
+        type = Type.String;
+        line = Compiler.line;
+        value = val;
+    }
     public override Type CheckType() { return Type.String; }
     public string value;
     public override void GenCode()
@@ -730,6 +815,11 @@ public class StringNode : StructTree
 
 public class WriteNode : StructTree
 {
+    public WriteNode()
+    {
+        type = Type.Write;
+        line = Compiler.line;
+    }
     public override Type CheckType()
     {
         if (right != null) right.CheckType();
@@ -778,6 +868,12 @@ public class WriteNode : StructTree
 
 public class ReadNode : StructTree
 {
+    public ReadNode(string val)
+    {
+        type = Type.Read;
+        line = Compiler.line;
+        value = val;
+    }
     public override Type CheckType()
     {
         if (Compiler.variables.ContainsKey(value))
@@ -808,6 +904,13 @@ public class ReadNode : StructTree
 
 public class WhileNode : StructTree
 {
+    public WhileNode()
+    {
+        type = Type.While;
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
 
@@ -845,6 +948,13 @@ public class WhileNode : StructTree
 
 public class IfNode : StructTree
 {
+    public IfNode()
+    {
+        type = Type.If;
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type type1 = left.CheckType();
@@ -863,7 +973,7 @@ public class IfNode : StructTree
     }
     public override void GenCode()
     {
-        int et1=Compiler.etNumber; Compiler.etNumber++;
+        int et1 = Compiler.etNumber; Compiler.etNumber++;
         if (left != null) left.GenCode();
         Compiler.EmitCode($"brfalse et{et1}");
         if (right != null) right.GenCode();
@@ -874,6 +984,14 @@ public class IfNode : StructTree
 
 public class IfElseNode : StructTree
 {
+    public IfElseNode()
+    {
+        type = Type.If;
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) elseNode = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type type1 = left.CheckType();
@@ -908,6 +1026,11 @@ public class IfElseNode : StructTree
 
 public class ReturnNode : StructTree
 {
+    public ReturnNode()
+    {
+        type = Type.Return;
+        line = Compiler.line;
+    }
     public override Type CheckType()
     {
         return Type.Return;
@@ -920,15 +1043,16 @@ public class ReturnNode : StructTree
 
 public class AssignMidNode : AssignNode
 {
+    public AssignMidNode(string _ident) : base(_ident)
+    {
+    }
     public override void GenCode()
     {
         if (left != null) left.GenCode();
         if (right != null) right.GenCode();
-        if (left.CheckType() == Type.Int && Compiler.variables[ident]==Type.Double) Compiler.EmitCode("conv.r8");
-        string s = $"stloc _{ident}";
-        Compiler.EmitCode(s);
-        s = $"ldloc _{ident}";
-        Compiler.EmitCode(s);
+        if (left.CheckType() == Type.Int && Compiler.variables[ident] == Type.Double) Compiler.EmitCode("conv.r8");
+        Compiler.EmitCode($"stloc _{ident}");
+        Compiler.EmitCode($"ldloc _{ident}");
     }
 
 
@@ -936,6 +1060,13 @@ public class AssignMidNode : AssignNode
 
 public class StandaloneExpNode : StructTree
 {
+    public StandaloneExpNode()
+    {
+        type = Type.StandaloneExp;
+        line = Compiler.line;
+        if (Compiler.stackTree.Count > 0) right = Compiler.stackTree.Pop();
+        if (Compiler.stackTree.Count > 0) left = Compiler.stackTree.Pop();
+    }
     public override Type CheckType()
     {
         Type type1 = Type.Default, type2 = Type.Default;

@@ -6,9 +6,9 @@
 //
 //  GPLEX Version:  1.2.2
 //  Machine:  LAPTOP-MOD8PJ2Q
-//  DateTime: 28.06.2020 01:13:56
+//  DateTime: 29.06.2020 20:02:22
 //  UserName: przem
-//  GPLEX input file <C:\Users\przem\source\repos\Compilator\Compilator\kompilator.lex - 28.06.2020 00:47:15>
+//  GPLEX input file <C:\Users\przem\source\repos\Compilator\Compilator\kompilator.lex - 29.06.2020 17:18:01>
 //  GPLEX frame file <embedded resource>
 //
 //  Option settings: verbose, parser, minimize
@@ -125,8 +125,8 @@ namespace GardensPoint
         
         enum Result {accept, noMatch, contextFound};
 
-        const int maxAccept = 86;
-        const int initial = 87;
+        const int maxAccept = 84;
+        const int initial = 85;
         const int eofNum = 0;
         const int goStart = -1;
         const int INITIAL = 0;
@@ -164,27 +164,26 @@ static int linecount=1;
         }
     };
 
-    static int[] startState = new int[] {87, 0};
+    static int[] startState = new int[] {85, 0};
 
-    static Table[] NxS = new Table[100] {
+    static Table[] NxS = new Table[89] {
 /* NxS[   0] */ new Table(0, 0, 0, null), // Shortest string ""
 /* NxS[   1] */ new Table(0, 0, -1, null), // Shortest string "\x01"
 /* NxS[   2] */ new Table(0, 0, -1, null), // Shortest string "\t"
 /* NxS[   3] */ new Table(0, 0, -1, null), // Shortest string "\r"
 /* NxS[   4] */ new Table(0, 0, -1, null), // Shortest string "\x20"
 /* NxS[   5] */ // Shortest string "!"
-      new Table(61, 1, -1, new sbyte[] {86}),
+      new Table(61, 1, -1, new sbyte[] {84}),
 /* NxS[   6] */ // Shortest string "\""
-      new Table(10, 83, 98, new sbyte[] {-1, 98, 98, -1, 98, 98, 
-          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
-          98, 98, 85, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
-          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
-          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
-          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 99}),
+      new Table(10, 83, 87, new sbyte[] {-1, 87, 87, -1, 87, 87, 
+          87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 
+          87, 87, 83, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 
+          87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 
+          87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 
+          87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 88}),
 /* NxS[   7] */ // Shortest string "&"
-      new Table(38, 1, -1, new sbyte[] {84}),
-/* NxS[   8] */ // Shortest string "("
-      new Table(100, 6, -1, new sbyte[] {89, -1, -1, -1, -1, 90}),
+      new Table(38, 1, -1, new sbyte[] {82}),
+/* NxS[   8] */ new Table(0, 0, -1, null), // Shortest string "("
 /* NxS[   9] */ new Table(0, 0, -1, null), // Shortest string ")"
 /* NxS[  10] */ new Table(0, 0, -1, null), // Shortest string "*"
 /* NxS[  11] */ new Table(0, 0, -1, null), // Shortest string "+"
@@ -192,9 +191,9 @@ static int linecount=1;
 /* NxS[  13] */ // Shortest string "/"
       new Table(47, 1, -1, new sbyte[] {81}),
 /* NxS[  14] */ // Shortest string "0"
-      new Table(46, 1, -1, new sbyte[] {88}),
+      new Table(46, 1, -1, new sbyte[] {86}),
 /* NxS[  15] */ // Shortest string "1"
-      new Table(46, 12, -1, new sbyte[] {88, -1, 15, 15, 15, 15, 
+      new Table(46, 12, -1, new sbyte[] {86, -1, 15, 15, 15, 15, 
           15, 15, 15, 15, 15, 15}),
 /* NxS[  16] */ new Table(0, 0, -1, null), // Shortest string ";"
 /* NxS[  17] */ // Shortest string "<"
@@ -581,12 +580,10 @@ static int linecount=1;
           80, 80, 80, 80}),
 /* NxS[  81] */ // Shortest string "//"
       new Table(10, 1, 81, new sbyte[] {-1}),
-/* NxS[  82] */ new Table(0, 0, -1, null), // Shortest string "(int)"
-/* NxS[  83] */ new Table(0, 0, -1, null), // Shortest string "(double)"
-/* NxS[  84] */ new Table(0, 0, -1, null), // Shortest string "&&"
-/* NxS[  85] */ new Table(0, 0, -1, null), // Shortest string "\"\""
-/* NxS[  86] */ new Table(0, 0, -1, null), // Shortest string "!="
-/* NxS[  87] */ // Shortest string ""
+/* NxS[  82] */ new Table(0, 0, -1, null), // Shortest string "&&"
+/* NxS[  83] */ new Table(0, 0, -1, null), // Shortest string "\"\""
+/* NxS[  84] */ new Table(0, 0, -1, null), // Shortest string "!="
+/* NxS[  85] */ // Shortest string ""
       new Table(9, 118, 1, new sbyte[] {2, -1, 1, 1, 3, 1, 
           1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
           1, 4, 5, 6, 1, 1, 1, 7, 1, 8, 9, 10, 11, 1, 12, 1, 
@@ -595,36 +592,18 @@ static int linecount=1;
           20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 1, 1, 1, 1, 
           1, 1, 20, 21, 20, 22, 23, 24, 20, 20, 25, 20, 20, 20, 20, 20, 
           20, 26, 20, 27, 20, 28, 20, 20, 29, 20, 20, 20, 30, 31, 32, 33}),
-/* NxS[  88] */ // Shortest string "0."
+/* NxS[  86] */ // Shortest string "0."
       new Table(48, 10, -1, new sbyte[] {80, 80, 80, 80, 80, 80, 
           80, 80, 80, 80}),
-/* NxS[  89] */ // Shortest string "(d"
-      new Table(111, 1, -1, new sbyte[] {93}),
-/* NxS[  90] */ // Shortest string "(i"
-      new Table(110, 1, -1, new sbyte[] {91}),
-/* NxS[  91] */ // Shortest string "(in"
-      new Table(116, 1, -1, new sbyte[] {92}),
-/* NxS[  92] */ // Shortest string "(int"
-      new Table(41, 1, -1, new sbyte[] {82}),
-/* NxS[  93] */ // Shortest string "(do"
-      new Table(117, 1, -1, new sbyte[] {94}),
-/* NxS[  94] */ // Shortest string "(dou"
-      new Table(98, 1, -1, new sbyte[] {95}),
-/* NxS[  95] */ // Shortest string "(doub"
-      new Table(108, 1, -1, new sbyte[] {96}),
-/* NxS[  96] */ // Shortest string "(doubl"
-      new Table(101, 1, -1, new sbyte[] {97}),
-/* NxS[  97] */ // Shortest string "(double"
-      new Table(41, 1, -1, new sbyte[] {83}),
-/* NxS[  98] */ // Shortest string "\"\x01"
-      new Table(10, 83, 98, new sbyte[] {-1, 98, 98, -1, 98, 98, 
-          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
-          98, 98, 85, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
-          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
-          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 
-          98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 99}),
-/* NxS[  99] */ // Shortest string "\"\\"
-      new Table(10, 1, 98, new sbyte[] {-1}),
+/* NxS[  87] */ // Shortest string "\"\x01"
+      new Table(10, 83, 87, new sbyte[] {-1, 87, 87, -1, 87, 87, 
+          87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 
+          87, 87, 83, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 
+          87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 
+          87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 
+          87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 88}),
+/* NxS[  88] */ // Shortest string "\"\\"
+      new Table(10, 1, 87, new sbyte[] {-1}),
     };
 
 int NextState() {
@@ -1050,7 +1029,7 @@ int NextState() {
     {
         case eofNum:
             switch (currentStart) {
-                case 87:
+                case 85:
 return (int)Tokens.Eof;
                     break;
             }
@@ -1218,19 +1197,13 @@ yylval.val=yytext; return (int)Tokens.RealNumber;
         case 81: // Recognized '"//".*',	Shortest string "//"
 { }
             break;
-        case 82: // Recognized '"(int)"',	Shortest string "(int)"
-return (int)Tokens.IntConv;
-            break;
-        case 83: // Recognized '"(double)"',	Shortest string "(double)"
-return (int)Tokens.DoubleConv;
-            break;
-        case 84: // Recognized '"&&"',	Shortest string "&&"
+        case 82: // Recognized '"&&"',	Shortest string "&&"
 return (int)Tokens.And;
             break;
-        case 85: // Recognized '\"([^\"\\"\r\n"]|\\.)*\"',	Shortest string "\"\""
+        case 83: // Recognized '\"([^\"\\"\r\n"]|\\.)*\"',	Shortest string "\"\""
 yylval.val=yytext;	return (int)Tokens.String;
             break;
-        case 86: // Recognized '"!="',	Shortest string "!="
+        case 84: // Recognized '"!="',	Shortest string "!="
 return (int)Tokens.NotEqual;
             break;
         default:
