@@ -113,8 +113,6 @@ public class Compiler
         EmitCode("{");
         EmitCode(" .maxstack 64");
         EmitCode();
-
-        EmitCode();
     }
 
     private static void GenEpilog()
@@ -297,20 +295,6 @@ public class DeclarationNode : StructTree
         s = s + $"_{ident} )";
 
         Compiler.EmitCode(s);
-
-        s = $"ldc.";
-        if (varType == Type.Int)
-            s = s + $"i4 0";
-        if (varType == Type.Double)
-            s = s + $"r8 0.0";
-        if (varType == Type.Bool)
-            s = s + "i4.0";
-
-        Compiler.EmitCode(s);
-        s = $"stloc _{ident}";
-        Compiler.EmitCode(s);
-
-
     }
 }
 
@@ -965,7 +949,6 @@ public class IfNode : StructTree
             Console.Write($"If condition cannot be of type {type1.ToString()}");
             Compiler.errors++;
             return Type.Error;
-
         }
         if (right != null) right.CheckType();
 
