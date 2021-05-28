@@ -95,8 +95,7 @@ main:	expression expression {Console.WriteLine("Syntax error");  ++Compiler.erro
 					var nodeM = new MainNode();
 				    Compiler.stackTree.Push(nodeM);}
 	|  { var nodeM = new MainNode(true);
-		 Compiler.stackTree.Push(nodeM);}
-	| OpenBracket main CloseBracket main;
+		 Compiler.stackTree.Push(nodeM);};
 
 
 while: While OpenPar exp ClosePar OpenBracket main CloseBracket {var nodeW = new WhileNode();

@@ -314,13 +314,13 @@ public class AssignNode : StructTree
 
         if (!Compiler.variables.ContainsKey(ident))
         {
-            Console.Write($"Semantic error. Variable {ident} undeclared. ");
+            Console.WriteLine($"Semantic error. Variable {ident} undeclared. ");
             Compiler.errors++;
             return Type.Error;
         }
         if (Compiler.variables[ident] == Type.Bool && typeL != Type.Bool)
         {
-            Console.Write($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.WriteLine($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
             return Type.Error;
 
@@ -328,7 +328,7 @@ public class AssignNode : StructTree
 
         if (Compiler.variables[ident] == Type.Int && typeL != Type.Int)
         {
-            Console.Write($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.WriteLine($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
             return Type.Error;
 
@@ -337,7 +337,7 @@ public class AssignNode : StructTree
 
         if (Compiler.variables[ident] == Type.Double && typeL == Type.Bool)
         {
-            Console.Write($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
+            Console.WriteLine($"Semantic error. Value {typeL.ToString()} cannot be assigned to variable of type {Compiler.variables[ident] }");
             Compiler.errors++;
             return Type.Error;
 
@@ -370,14 +370,14 @@ public class LogicNode : StructTree
 
         if (type1 != Type.Bool)
         {
-            Console.Write($"Semantic error. Logic operation {type.ToString()} cannot be applied to {type1.ToString()}");
+            Console.WriteLine($"Semantic error. Logic operation {type.ToString()} cannot be applied to {type1.ToString()}");
             Compiler.errors++;
             return Type.Error;
 
         }
         if (type2 != Type.Bool)
         {
-            Console.Write($"Semantic error. Logic operation {type.ToString()} cannot be applied to {type2.ToString()}");
+            Console.WriteLine($"Semantic error. Logic operation {type.ToString()} cannot be applied to {type2.ToString()}");
             Compiler.errors++;
             return Type.Error;
 
@@ -420,14 +420,14 @@ public class RelationNode : StructTree
         {
             if (type1 == Type.Bool)
             {
-                Console.Write($"Semantic error. Logic operation {type.ToString()} cannot be applied to {type1.ToString()}");
+                Console.WriteLine($"Semantic error. Logic operation {type.ToString()} cannot be applied to {type1.ToString()}");
                 Compiler.errors++;
                 return Type.Error;
 
             }
             if (type2 == Type.Bool)
             {
-                Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type2}");
+                Console.WriteLine($"Semantic error. Logic operation {type} cannot be applied to {type2}");
                 Compiler.errors++;
                 return Type.Error;
             }
@@ -436,7 +436,7 @@ public class RelationNode : StructTree
         {
             if ((type1 == Type.Bool && type2 != Type.Bool) || (type2 == Type.Bool && type1 != Type.Bool))
             {
-                Console.Write($"Semantic error. Logic operation {type} cannot be applied to {type1} and {type2}");
+                Console.WriteLine($"Semantic error. Logic operation {type} cannot be applied to {type1} and {type2}");
                 Compiler.errors++;
                 return Type.Error;
 
@@ -500,14 +500,14 @@ public class AddNode : StructTree
 
         if (type1 == Type.Bool)
         {
-            Console.Write($"Semantic error. Add operation {type} cannot be applied to {type1}");
+            Console.WriteLine($"Semantic error. Add operation {type} cannot be applied to {type1}");
             Compiler.errors++;
             return Type.Error;
 
         }
         if (type2 == Type.Bool)
         {
-            Console.Write($"Semantic error. Add operation {type} cannot be applied to {type2}");
+            Console.WriteLine($"Semantic error. Add operation {type} cannot be applied to {type2}");
             Compiler.errors++;
             return Type.Error;
 
@@ -555,14 +555,14 @@ public class MulNode : StructTree
 
         if (type1 == Type.Bool)
         {
-            Console.Write($"Semantic error. Multiply operation {type} cannot be applied to {type1}");
+            Console.WriteLine($"Semantic error. Multiply operation {type} cannot be applied to {type1}");
             Compiler.errors++;
             return Type.Error;
 
         }
         if (type2 == Type.Bool)
         {
-            Console.Write($"Semantic error. Multiply operation {type} cannot be applied to {type2}");
+            Console.WriteLine($"Semantic error. Multiply operation {type} cannot be applied to {type2}");
             Compiler.errors++;
             return Type.Error;
 
@@ -607,14 +607,14 @@ public class BitNode : StructTree
 
         if (type1 != Type.Int)
         {
-            Console.Write($"Semantic error. Bit operation {type} cannot be applied to {type1}");
+            Console.WriteLine($"Semantic error. Bit operation {type} cannot be applied to {type1}");
             Compiler.errors++;
             return Type.Error;
 
         }
         if (type2 != Type.Int)
         {
-            Console.Write($"Semantic error. Bit operation {type} cannot be applied to {type2}");
+            Console.WriteLine($"Semantic error. Bit operation {type} cannot be applied to {type2}");
             Compiler.errors++;
             return Type.Error;
 
@@ -647,21 +647,21 @@ public class UnaryNode : StructTree
         if (type == Type.UnaryMinus && str != Type.Double && str != Type.Int)
         {
             Compiler.errors++;
-            Console.Write("Semantic error. Unary operator - can't be applied to bool value.");
+            Console.WriteLine("Semantic error. Unary operator - can't be applied to bool value.");
             return Type.Error;
 
         }
         if (type == Type.BitNegation && str != Type.Int)
         {
             Compiler.errors++;
-            Console.Write($"Semantic error. Unary operator ~ can't be applied to {str.ToString()} value.");
+            Console.WriteLine($"Semantic error. Unary operator ~ can't be applied to {str.ToString()} value.");
             return Type.Error;
 
         }
         if (type == Type.Negation && str != Type.Bool)
         {
             Compiler.errors++;
-            Console.Write($"Semontic error. Unary operator ! can't be applied to {str.ToString()} value.");
+            Console.WriteLine($"Semontic error. Unary operator ! can't be applied to {str.ToString()} value.");
             return Type.Error;
 
         }
@@ -713,7 +713,7 @@ public class IdentNode : StructTree
         if (Compiler.variables.ContainsKey(ident))
             return Compiler.variables[ident];
 
-        Console.Write($"Semantic error. Variable {ident} wasn't declared.");
+        Console.WriteLine($"Semantic error. Variable {ident} wasn't declared.");
         Compiler.errors++;
         return Type.Error;
 
@@ -863,7 +863,7 @@ public class ReadNode : StructTree
         if (Compiler.variables.ContainsKey(value))
             return Compiler.variables[value];
 
-        Console.Write($"Semantic error. Variable {value} wasn't declared.");
+        Console.WriteLine($"Semantic error. Variable {value} wasn't declared.");
         Compiler.errors++;
         return Type.Error;
     }
@@ -946,7 +946,7 @@ public class IfNode : StructTree
 
         if (type1 != Type.Bool)
         {
-            Console.Write($"If condition cannot be of type {type1.ToString()}");
+            Console.WriteLine($"If condition cannot be of type {type1.ToString()}");
             Compiler.errors++;
             return Type.Error;
         }
@@ -982,7 +982,7 @@ public class IfElseNode : StructTree
 
         if (type1 != Type.Bool)
         {
-            Console.Write($"If condition cannot be of type {type1.ToString()}");
+            Console.WriteLine($"If condition cannot be of type {type1.ToString()}");
             Compiler.errors++;
             return Type.Error;
 
